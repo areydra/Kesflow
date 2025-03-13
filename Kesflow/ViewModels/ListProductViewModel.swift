@@ -1,0 +1,82 @@
+//
+//  ListProductViewModel.swift
+//  Kesflow
+//
+//  Created by Areydra Desfikriandre on 3/12/25.
+//
+
+import Foundation
+import CoreData
+
+@Observable class ListProductViewModel {
+    let container: NSPersistentContainer
+    let context: NSManagedObjectContext
+    
+    var products: [ProductEntity] = []
+    var selectedProduct: ProductEntity?
+    
+    init() {
+        self.container = NSPersistentContainer(name: "KesflowContainer")
+        self.container.loadPersistentStores { (description, error) in
+            if let error = error as NSError? {
+                print("Error while loading persistent stores: \(error)")
+            } else {
+                print("Success load persistent stores: \(description)")
+            }
+        }
+        self.context = container.viewContext
+
+        getProducts()
+    }
+    
+    func getProducts() {
+        let request: NSFetchRequest = NSFetchRequest<ProductEntity>(entityName: "ProductEntity")
+
+        do {
+            products = try self.context.fetch(request)
+        } catch let error as NSError {
+            print("Error while get products: \(error)")
+        }
+    }
+    
+    func addProduct(name: String, recommendedPrice: Int32, listProductStock: [ProductStockEntity]) {
+        let newProduct = ProductEntity(context: context)
+        newProduct.name = name
+        newProduct.recommendedPrice = recommendedPrice
+        newProduct.listProductStock = NSSet(array: listProductStock)
+        
+        saveDataIntoDatabase()
+    }
+
+    func productStockEntity(costPrice: Int32, stock: Int16, unit: String) -> ProductStockEntity {
+        let productStock = ProductStockEntity(context: context)
+        productStock.costPrice = costPrice
+        productStock.stock = stock
+        productStock.unit = unit
+        
+        return productStock
+    }
+    
+    func deleteProduct(product: ProductEntity) {
+        self.context.delete(product)
+        saveDataIntoDatabase()
+    }
+    
+    func setSelectedProduct(product: ProductEntity) {
+        self.selectedProduct = product
+    }
+    
+    func removeSelectedProduct() {
+        self.selectedProduct = nil
+    }
+    
+    func saveDataIntoDatabase() {
+        do {
+            self.products.removeAll()
+            try self.context.save()
+            self.getProducts()
+        } catch let error as NSError {
+            print("Error while saving data into database: \(error)")
+        }
+    }
+}

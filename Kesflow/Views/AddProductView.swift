@@ -9,21 +9,17 @@ import SwiftUI
 
 struct AddProductView: View {
     @Environment(\.dismiss) var dismiss
-    @Environment(ProductsViewModel.self) var productsViewModel
+    @Environment(ListProductViewModel.self) var listProductViewModel
 
     @State private var productName: String = ""
     @State private var recommendedPrice: String = ""
-    @State private var listProductStock: [ProductStockModel] = [
-        ProductStockModel(stock: 0, unit: "", costPrice: 0)
-    ]
+    @State private var listProductStock: [ProductStockEntity] = []
 
     func onSave() {
-        productsViewModel.addProduct(
-            product: ProductModel(
-                name: productName,
-                recommendedPrice: Int(unformatDecimal(text: recommendedPrice)) ?? 0,
-                listProductStock: listProductStock
-            )
+        listProductViewModel.addProduct(
+            name: productName,
+            recommendedPrice: Int32(unformatDecimal(text: recommendedPrice)) ?? 0,
+            listProductStock: listProductStock
         )
         dismiss()
     }
@@ -79,6 +75,9 @@ struct AddProductView: View {
             }
         }
         .navigationTitle("Add Product")
+        .onAppear() {
+            listProductStock.append(listProductViewModel.productStockEntity(costPrice: 0, stock: 0, unit: ""))
+        }
     }
 }
 
@@ -86,5 +85,5 @@ struct AddProductView: View {
     NavigationStack {
         AddProductView()
     }
-    .environment(ProductsViewModel())
+    .environment(ListProductViewModel())
 }

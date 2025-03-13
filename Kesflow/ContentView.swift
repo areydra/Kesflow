@@ -15,8 +15,11 @@ enum ViewKeys: String, CaseIterable, Hashable {
 }
 
 struct ContentView: View {
+    @State private var listProductViewModel = ListProductViewModel()
+    @State private var navigationViewModel = NavigationViewModel()
+
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationViewModel.path) {
             DashboardView()
             .navigationDestination(for: ViewKeys.self) { key in
                 switch key {
@@ -31,6 +34,8 @@ struct ContentView: View {
                 }
             }
         }
+        .environment(listProductViewModel)
+        .environment(navigationViewModel)
     }
 }
 

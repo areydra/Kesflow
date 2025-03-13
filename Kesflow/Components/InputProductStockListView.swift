@@ -8,24 +8,27 @@
 import SwiftUI
 
 struct InputProductStockListView: View {
-    @Binding private var listProductStock: [ProductStockModel]
-    
-    init(listProductStock: Binding<[ProductStockModel]>) {
-        self._listProductStock = listProductStock
-    }
+    @Environment(ListProductViewModel.self) var listProductViewModel
+    @Binding var listProductStock: [ProductStockEntity]
     
     var body: some View {
         VStack {
-            ForEach(0..<listProductStock.count, id: \.self) { index in
-                InputProductStockView(index: index, productStockList: $listProductStock)
-
+            ForEach(listProductStock) { productStock in
+                InputProductStockView(productStock: productStock)
+                
                 if (listProductStock.count > 1) {
                     Divider().padding(.vertical, 4)
                 }
             }
             
             Button {
-                listProductStock.append(ProductStockModel(stock: 0, unit: "", costPrice: 0))
+                listProductStock.append(
+                    listProductViewModel.productStockEntity(
+                        costPrice: 0,
+                        stock: 0,
+                        unit: ""
+                    )
+                )
             } label: {
                 Text("Add New")
                     .fontWeight(.semibold)
@@ -42,7 +45,5 @@ struct InputProductStockListView: View {
 }
 
 #Preview {
-    InputProductStockListView(listProductStock: .constant([
-        ProductStockModel(stock: 0, unit: "", costPrice: 0)
-    ]))
+    InputProductStockListView(listProductStock: .constant([ProductStockEntity()]))
 }

@@ -9,38 +9,29 @@ import SwiftUI
 
 struct EditProductView: View {
     @Environment(\.dismiss) var dismiss
-    @Environment(ProductsViewModel.self) var productsViewModel
+    @Environment(ListProductViewModel.self) var listProductViewModel
     
     @State private var productName: String = ""
     @State private var recommendedPrice: String = ""
-    @State private var listProductStock: [ProductStockModel] = [
-        ProductStockModel(stock: 0, unit: "", costPrice: 0)
-    ]
-
-    let productId: String
-    
-    init(productId: String = "") {
-        self.productId = productId
-    }
-
+    @State private var listProductStock: [ProductStockEntity] = []
 
     func getProductDetail() {
-        guard let product = productsViewModel.getSpecificProduct(id: productId) else { return }
-
-        productName = product.name
-        recommendedPrice = product.recommendedPrice.description
-        listProductStock = product.listProductStock
+        print("Edit Product Appears")
+        
+        guard let selectedProduct = listProductViewModel.selectedProduct else {
+            return
+        }
+        
+        productName = selectedProduct.name ?? ""
+        recommendedPrice = selectedProduct.recommendedPrice == 0 ? "" : selectedProduct.recommendedPrice.description
+        
+        if let productStock = selectedProduct.listProductStock as? Set<ProductStockEntity> {
+            listProductStock = Array(productStock)
+        }
     }
 
     func onSave() {
-        productsViewModel.editProduct(
-            product: ProductModel(
-                id: productId,
-                name: productName,
-                recommendedPrice: Int(unformatDecimal(text: recommendedPrice)) ?? 0,
-                listProductStock: listProductStock
-            )
-        )
+        listProductViewModel.saveDataIntoDatabase()
         dismiss()
     }
 
@@ -53,7 +44,7 @@ struct EditProductView: View {
                     .padding(.bottom, 8)
                 
                 Button {
-                    print(listProductStock)
+
                 } label: {
                     Text("Upload Image")
                         .font(.subheadline)
@@ -68,6 +59,10 @@ struct EditProductView: View {
                     text: $productName,
                     placeholder: "Enter product name"
                 )
+                .onChange(of: productName) { oldValue, newValue in
+                    guard let selectedProduct = listProductViewModel.selectedProduct else { return }
+                    selectedProduct.name = newValue
+                }
                 
                 Divider().padding(.vertical, 4)
                 
@@ -81,6 +76,10 @@ struct EditProductView: View {
                     placeholder: "0",
                     isShowPrefixCurrency: true
                 )
+                .onChange(of: recommendedPrice) { oldValue, newValue in
+                    guard let selectedProduct = listProductViewModel.selectedProduct else { return }
+                    selectedProduct.recommendedPrice = Int32(unformatDecimal(text: recommendedPrice)) ?? 0
+                }
             }
             .padding(.horizontal, 26)
             .padding(.vertical, 20)
@@ -95,6 +94,7 @@ struct EditProductView: View {
             }
         }
         .onAppear(perform: getProductDetail)
+        .onDisappear(perform: listProductViewModel.removeSelectedProduct)
         .navigationTitle("Add Product")
     }
 }
@@ -103,5 +103,5 @@ struct EditProductView: View {
     NavigationStack {
         EditProductView()
     }
-    .environment(ProductsViewModel())
+    .environment(ListProductViewModel())
 }

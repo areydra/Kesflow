@@ -8,24 +8,18 @@
 import SwiftUI
 
 struct InputProductStockView: View {
-    private let index: Int
-    @Binding private var productStockList: [ProductStockModel]
+    let productStock: ProductStockEntity
 
     @State private var stock: String = ""
     @State private var unit: String = ""
     @State private var costPrice: String = ""
     
-    init(index: Int, productStockList: Binding<[ProductStockModel]>) {
-        self.index = index
-        self._productStockList = productStockList
-    }
-    
     // We cannot set the state value inside init(), because init and view are initializing in parallel.
     // i.e.: Even though the state value has been set from the init(), it will not reflect in the UI because SwiftUI only listens to @State value changes when they originate from the view hierarchy. In this case, using onAppear() ensures the changes are reflected in the UI.
     func getLocalValue() {
-        unit = productStockList[index].unit
-        stock = productStockList[index].stock > 0 ? String(productStockList[index].stock) : ""
-        costPrice = productStockList[index].costPrice > 0 ? String(productStockList[index].costPrice) : ""
+        unit = productStock.unit ?? ""
+        stock = productStock.stock == 0 ? "" : productStock.stock.description
+        costPrice = productStock.costPrice == 0 ? "" : productStock.costPrice.description
     }
 
     var body: some View {
@@ -37,8 +31,8 @@ struct InputProductStockView: View {
                     placeholder: "0"
                 )
                 .onChange(of: stock, { oldValue, newValue in
-                    if let stockValue = Int(unformatDecimal(text: newValue)) {
-                        productStockList[index].stock = stockValue
+                    if let stockValue = Int16(unformatDecimal(text: newValue)) {
+                        productStock.stock = stockValue
                     }
                 })
                 TextFieldStringView(
@@ -47,7 +41,7 @@ struct InputProductStockView: View {
                     placeholder: "Box/Pcs/Pack"
                 )
                 .onChange(of: unit, { oldValue, newValue in
-                    productStockList[index].unit = newValue
+                    productStock.unit = newValue
                 })
             }
             .padding(.bottom, 8)
@@ -59,8 +53,8 @@ struct InputProductStockView: View {
                 isShowPrefixCurrency: true
             )
             .onChange(of: costPrice, { oldValue, newValue in
-                if let costPriceValue = Int(unformatDecimal(text: newValue)) {
-                    productStockList[index].costPrice = costPriceValue
+                if let costPriceValue = Int32(unformatDecimal(text: newValue)) {
+                    productStock.costPrice = costPriceValue
                 }
             })
         }
@@ -69,5 +63,5 @@ struct InputProductStockView: View {
 }
 
 #Preview {
-    InputProductStockView(index: 0, productStockList: .constant([ProductStockModel(stock: 10, unit: "Box", costPrice: 1000)]))
+    InputProductStockView(productStock: ProductStockEntity())
 }
