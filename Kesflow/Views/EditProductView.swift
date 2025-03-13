@@ -66,7 +66,7 @@ struct EditProductView: View {
                 
                 Divider().padding(.vertical, 4)
                 
-                InputProductStockListView(listProductStock: $listProductStock)
+                ListInputProductStockView(listProductStock: $listProductStock)
 
                 Divider().padding(.vertical, 4)
                 
