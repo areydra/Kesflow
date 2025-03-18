@@ -45,10 +45,12 @@ struct ItemProductView: View {
                       Text(product.name ?? "")
                           .font(.subheadline)
                           .fontWeight(.semibold)
+                          .foregroundStyle(Color("TextPrimary"))
                       Spacer()
                       Text("Rp\(formatDecimalInThousand(text: String(product.recommendedPrice)))")
                           .font(.subheadline)
                           .fontWeight(.semibold)
+                          .foregroundStyle(Color("TextPrimary"))
                     }
                     .padding(.bottom, 8)
 
@@ -57,16 +59,18 @@ struct ItemProductView: View {
                              HStack {
                                  Text("Cost price: Rp\(formatDecimalInThousand(text: String( productStock.costPrice)))")
                                      .font(.footnote)
+                                     .foregroundStyle(Color("TextPrimary"))
                                  Spacer()
                                  Text("\(productStock.stock) \(productStock.unit ?? "")")
                                      .font(.footnote)
+                                     .foregroundStyle(Color("TextPrimary"))
                              }
                          }
 
                     }
                 }
             }
-            .background(.white)
+            .background(Color("ItemBackground"))
             .offset(x: draggingItemOffestX)
             .offset(x: draggedItemOffsetX)
             .onTapGesture(perform: {
@@ -110,6 +114,24 @@ struct ItemProductView: View {
     }
 }
 
-#Preview {
-    ItemProductView(product: ProductEntity())
+struct ItemProductView_Views: PreviewProvider {
+    static var previews: some View {
+        let context = DatabaseViewModel().context
+        let productEntity: ProductEntity = ProductEntity(context: context)
+        let productStock = ProductStockEntity(context: context)
+        var listProductStock: [ProductStockEntity] = []
+
+        productStock.costPrice = 20000
+        productStock.stock = 20
+        productStock.unit = "Dus"
+        listProductStock.append(contentsOf: [productStock])
+        
+        productEntity.name = "Lee Mineral 500ml"
+        productEntity.recommendedPrice = 21000
+        productEntity.listProductStock = NSSet(array: listProductStock)
+
+        return ItemProductView(product: productEntity)
+            .environment(ListProductViewModel(context: context))
+            .environment(NavigationViewModel())
+    }
 }

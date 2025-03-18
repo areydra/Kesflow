@@ -16,7 +16,7 @@
       ],
       "color" : {
         "platform" : "ios",
-        "reference" : "darkTextColor"
+        "reference" : "labelColor"
       },
       "idiom" : "universal"
     }

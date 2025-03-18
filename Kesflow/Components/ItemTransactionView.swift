@@ -49,10 +49,12 @@ struct ItemTransactionView: View {
                         Text(transaction.name ?? "")
                             .font(.subheadline)
                             .fontWeight(.semibold)
+                            .foregroundStyle(Color("TextPrimary"))
                         Spacer()
                         Text("Sold \(transaction.quantity) \(transaction.unit ?? "")")
                             .font(.subheadline)
                             .fontWeight(.semibold)
+                            .foregroundStyle(Color("TextPrimary"))
                     }
                     .padding(.bottom, 8)
                     
@@ -60,8 +62,10 @@ struct ItemTransactionView: View {
                         VStack(alignment: .leading) {
                             Text("Cost price: Rp\(formatDecimalInThousand(text: String(transaction.costPrice)))")
                                 .font(.footnote)
+                                .foregroundStyle(Color("TextPrimary"))
                             Text("Sale price: Rp\(formatDecimalInThousand(text: String(transaction.salePrice)))")
                                 .font(.footnote)
+                                .foregroundStyle(Color("TextPrimary"))
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         
@@ -71,17 +75,21 @@ struct ItemTransactionView: View {
                             VStack(alignment: .trailing) {
                                 Text("Total sale price:")
                                     .font(.footnote)
+                                    .foregroundStyle(Color("TextPrimary"))
                                 Text("Rp\(formatDecimalInThousand(text: String(transaction.totalSalePrice)))")
                                     .font(.footnote)
                                     .bold()
+                                    .foregroundStyle(Color("TextPrimary"))
                             }
                             
                             VStack(alignment: .trailing) {
                                 Text("Profit:")
                                     .font(.footnote)
+                                    .foregroundStyle(Color("TextPrimary"))
                                 Text("Rp\(formatDecimalInThousand(text: String(transaction.profit)))")
                                     .font(.footnote)
                                     .bold()
+                                    .foregroundStyle(Color("TextPrimary"))
                             }
                         }
                     }
@@ -90,12 +98,13 @@ struct ItemTransactionView: View {
                     Text(dateFormatter.string(from: transaction.createdAt ?? Date()))
                         .font(.footnote)
                         .frame(maxWidth: .infinity, alignment: .trailing)
+                        .foregroundStyle(Color("TextPrimary"))
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(.horizontal)
             .padding(.bottom, 8)
-            .background(.white)
+            .background(Color("ItemBackground"))
             .offset(x: draggingItemOffestX)
             .offset(x: draggedItemOffsetX)
             .onTapGesture(perform: {
@@ -140,6 +149,24 @@ struct ItemTransactionView: View {
     }
 }
 
-#Preview {
-    ItemTransactionView(transaction: TransactionEntity())
+struct ItemTransactionView_Views: PreviewProvider {
+    static var previews: some View {
+        let context = DatabaseViewModel().context
+        let transactionEntity: TransactionEntity = TransactionEntity(context: context)
+        let productStock = ProductStockEntity(context: context)
+        
+        transactionEntity.name = "Bening 600ml"
+        transactionEntity.quantity = 10
+        transactionEntity.salePrice = 24000
+        transactionEntity.totalSalePrice = 240000
+        transactionEntity.createdAt = Date()
+        transactionEntity.costPrice = 19500
+        transactionEntity.note = ""
+        transactionEntity.unit = "Dus"
+        transactionEntity.profit = 45000
+        transactionEntity.productStock = productStock
+
+        return ItemTransactionView(transaction: transactionEntity)
+            .environment(TransactionViewModel(context: context))
+    }
 }
