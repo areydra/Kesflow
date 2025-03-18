@@ -15,8 +15,15 @@ enum ViewKeys: String, CaseIterable, Hashable {
 }
 
 struct ContentView: View {
-    @State private var listProductViewModel = ListProductViewModel()
+    private var databaseViewModel = DatabaseViewModel()
+    @State private var listProductViewModel: ListProductViewModel
+    @State private var transactionViewModel: TransactionViewModel
     @State private var navigationViewModel = NavigationViewModel()
+    
+    init() {
+        _listProductViewModel = .init(initialValue: ListProductViewModel(context: databaseViewModel.context))
+        _transactionViewModel = .init(initialValue: TransactionViewModel(context: databaseViewModel.context))
+    }
 
     var body: some View {
         NavigationStack(path: $navigationViewModel.path) {
@@ -28,7 +35,7 @@ struct ContentView: View {
                     case .EditProduct:
                         EditProductView()
                     case .AddTransaction:
-                        Text("Add Transaction")
+                        AddTransactionView()
                     case .EditTransaction:
                         Text("Edit Transaction")
                 }
@@ -36,6 +43,7 @@ struct ContentView: View {
         }
         .environment(listProductViewModel)
         .environment(navigationViewModel)
+        .environment(transactionViewModel)
     }
 }
 

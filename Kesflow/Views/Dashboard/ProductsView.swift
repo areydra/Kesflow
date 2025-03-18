@@ -53,5 +53,5 @@ struct ProductsView: View {
     NavigationStack {
         ProductsView()
     }
-    .environment(ListProductViewModel())
+    .environment(ListProductViewModel(context: DatabaseViewModel().context))
 }

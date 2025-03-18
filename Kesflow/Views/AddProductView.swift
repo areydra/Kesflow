@@ -85,5 +85,5 @@ struct AddProductView: View {
     NavigationStack {
         AddProductView()
     }
-    .environment(ListProductViewModel())
+    .environment(ListProductViewModel(context: DatabaseViewModel().context))
 }

@@ -9,24 +9,14 @@ import Foundation
 import CoreData
 
 @Observable class ListProductViewModel {
-    let container: NSPersistentContainer
     let context: NSManagedObjectContext
     
     var products: [ProductEntity] = []
     var selectedProduct: ProductEntity?
     
-    init() {
-        self.container = NSPersistentContainer(name: "KesflowContainer")
-        self.container.loadPersistentStores { (description, error) in
-            if let error = error as NSError? {
-                print("Error while loading persistent stores: \(error)")
-            } else {
-                print("Success load persistent stores: \(description)")
-            }
-        }
-        self.context = container.viewContext
-
-        getProducts()
+    init(context: NSManagedObjectContext) {
+        self.context = context
+        self.getProducts()
     }
     
     func getProducts() {
