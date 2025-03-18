@@ -73,6 +73,15 @@ struct ItemTransactionView: View {
                         
                         VStack(alignment: .trailing) {
                             VStack(alignment: .trailing) {
+                                Text("Total cost price:")
+                                    .font(.footnote)
+                                    .foregroundStyle(Color("TextPrimary"))
+                                Text("Rp\(formatDecimalInThousand(text: String(transaction.totalSalePrice - transaction.profit)))")
+                                    .font(.footnote)
+                                    .bold()
+                                    .foregroundStyle(Color("TextPrimary"))
+                            }
+                            VStack(alignment: .trailing) {
                                 Text("Total sale price:")
                                     .font(.footnote)
                                     .foregroundStyle(Color("TextPrimary"))
@@ -81,7 +90,6 @@ struct ItemTransactionView: View {
                                     .bold()
                                     .foregroundStyle(Color("TextPrimary"))
                             }
-                            
                             VStack(alignment: .trailing) {
                                 Text("Profit:")
                                     .font(.footnote)
