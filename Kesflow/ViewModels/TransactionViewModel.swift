@@ -21,7 +21,7 @@ import CoreData
         let request: NSFetchRequest = NSFetchRequest<TransactionEntity>(entityName: "TransactionEntity")
         
         do {
-            transactions = try context.fetch(request)
+            transactions = try context.fetch(request).sorted{($0.createdAt ?? Date()) > ($1.createdAt ?? Date())}
         } catch let error as NSError {
             print("Error while loading transaction entity: \(error)")
         }
