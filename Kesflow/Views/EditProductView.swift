@@ -16,8 +16,6 @@ struct EditProductView: View {
     @State private var listProductStock: [ProductStockEntity] = []
 
     func getProductDetail() {
-        print("Edit Product Appears")
-        
         guard let selectedProduct = listProductViewModel.selectedProduct else {
             return
         }
@@ -31,7 +29,11 @@ struct EditProductView: View {
     }
 
     func onSave() {
-        listProductViewModel.saveDataIntoDatabase()
+        listProductViewModel.editProduct(
+            newName: productName,
+            newRecommendedPrice: Int32(recommendedPrice.isEmpty ? "0" : unformatDecimal(text: recommendedPrice)) ?? 0,
+            listProductStock: listProductStock
+        )
         dismiss()
     }
 
@@ -95,7 +97,7 @@ struct EditProductView: View {
         }
         .onAppear(perform: getProductDetail)
         .onDisappear(perform: listProductViewModel.removeSelectedProduct)
-        .navigationTitle("Add Product")
+        .navigationTitle("Edit Product")
     }
 }
 

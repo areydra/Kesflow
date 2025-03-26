@@ -38,6 +38,16 @@ import CoreData
         saveDataIntoDatabase()
     }
 
+    func editProduct(newName: String, newRecommendedPrice: Int32, listProductStock: [ProductStockEntity]) {
+        guard let selectedProduct = self.selectedProduct else { return }
+        
+        selectedProduct.name = newName
+        selectedProduct.recommendedPrice = newRecommendedPrice
+        selectedProduct.listProductStock = NSSet(array: listProductStock)
+        
+        saveDataIntoDatabase()
+    }
+    
     func productStockEntity(costPrice: Int32, stock: Int16, unit: String) -> ProductStockEntity {
         let productStock = ProductStockEntity(context: context)
         productStock.costPrice = costPrice
