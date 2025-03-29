@@ -11,6 +11,7 @@ import CoreData
 @Observable class TransactionViewModel {
     var transactions: [TransactionEntity] = []
     var context: NSManagedObjectContext
+    var selectedTransaction: TransactionEntity? = nil
     
     init (context: NSManagedObjectContext) {
         self.context = context
@@ -43,6 +44,40 @@ import CoreData
         transaction.productStock.stock -= transaction.quantity
         
         saveDatabase()
+    }
+
+    func editTransaction(transaction: TransactionEntity, newTransaction: TransactionModel) {
+        if (transaction.quantity != newTransaction.quantity) || (transaction.productStock != newTransaction.productStock) {
+            guard transaction.productStock != nil else {
+                return
+            }
+
+            if transaction.productStock != newTransaction.productStock {
+                transaction.productStock?.stock += transaction.quantity
+                transaction.productStock = newTransaction.productStock
+                transaction.productStock?.stock -= newTransaction.quantity
+            } else {
+                transaction.productStock?.stock += (transaction.quantity - newTransaction.quantity)
+            }
+        }
+
+        
+        transaction.name = newTransaction.name
+        transaction.quantity = newTransaction.quantity
+        transaction.salePrice = newTransaction.salePrice
+        transaction.totalSalePrice = newTransaction.totalSalePrice
+        transaction.createdAt = newTransaction.date
+        transaction.costPrice = newTransaction.costPrice
+        transaction.note = newTransaction.note
+        transaction.unit = newTransaction.unit
+        transaction.profit = newTransaction.profit
+        transaction.product = newTransaction.product
+
+        saveDatabase()
+    }
+
+    func setSelectedTransaction(_ transaction: TransactionEntity) {
+        self.selectedTransaction = transaction
     }
     
     func deleteTransaction(_ transaction: TransactionEntity) {

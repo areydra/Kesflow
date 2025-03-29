@@ -19,4 +19,19 @@ struct TransactionModel {
     let unit: String
     let profit: Int32
     let productStock: ProductStockEntity
+    let product: ProductEntity?
+    
+    init(name: String, quantity: Int16, salePrice: Int32, totalSalePrice: Int32, date: Date, costPrice: Int32, note: String, unit: String, profit: Int32, productStock: ProductStockEntity, product: ProductEntity? = nil) {
+        self.name = name
+        self.quantity = quantity
+        self.salePrice = salePrice
+        self.totalSalePrice = totalSalePrice
+        self.date = date
+        self.costPrice = costPrice
+        self.note = note
+        self.unit = unit
+        self.profit = profit
+        self.productStock = productStock
+        self.product = product
+    }
 }

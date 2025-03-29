@@ -37,7 +37,7 @@ struct ContentView: View {
                     case .AddTransaction:
                         AddTransactionView()
                     case .EditTransaction:
-                        Text("Edit Transaction")
+                        EditTransactionView()
                 }
             }
         }

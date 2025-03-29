@@ -12,6 +12,7 @@ struct ListProductBottomSheetView: View {
 
     @Binding var isShow: Bool
     @Binding var selectedProduct: ProductEntity?
+    @Binding var selectedProductStock: ProductStockEntity?
 
     var body: some View {
         BottomSheet(isShowModal: $isShow, content: Group {
@@ -23,6 +24,10 @@ struct ListProductBottomSheetView: View {
                         ForEach(listProductViewModel.products, id: \.self) { product in
                             Text(product.name ?? "")
                                 .onTapGesture {
+                                    if (selectedProduct != product) {
+                                        selectedProductStock = nil
+                                    }
+                                    
                                     selectedProduct = product
                                     isShow.toggle()
                                 }
@@ -31,8 +36,6 @@ struct ListProductBottomSheetView: View {
                     .frame(maxHeight: 500)
                     .listStyle(.plain)
                 }
-            }.onAppear() {
-                print("BS asdacq")
             }
         })
     }
@@ -41,10 +44,8 @@ struct ListProductBottomSheetView: View {
 struct ListProductBottomSheetView_Preview: PreviewProvider {
     static var previews: some View {
         let context = DatabaseViewModel().context
-        @State var isShow = true
-        @State var product: ProductEntity? = nil
-        
-        ListProductBottomSheetView(isShow: $isShow, selectedProduct: $product)
+
+        ListProductBottomSheetView(isShow: .constant(true), selectedProduct: .constant(nil), selectedProductStock: .constant(nil))
             .environment(ListProductViewModel(context: context))
     }
 }

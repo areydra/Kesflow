@@ -29,6 +29,20 @@ import CoreData
         }
     }
     
+    func getSpecificProduct(name: String?) -> ProductEntity? {
+        guard let name = name else { return nil }
+        
+        let request: NSFetchRequest<ProductEntity> = NSFetchRequest(entityName: "ProductEntity")
+        request.predicate = NSPredicate(format: "name CONTAINS[c] %@", name)
+
+        do {
+            return try self.context.fetch(request).first
+        } catch let error as NSError {
+            print("Error while getting specific product: \(error)")
+            return nil
+        }
+    }
+
     func addProduct(name: String, recommendedPrice: Int32, listProductStock: [ProductStockEntity]) {
         let newProduct = ProductEntity(context: context)
         newProduct.name = name

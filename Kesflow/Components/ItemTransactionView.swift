@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ItemTransactionView: View {
     @Environment(TransactionViewModel.self) var transactionViewModel
+    @Environment(NavigationViewModel.self) var navigationViewModel
     
     var transaction: TransactionEntity
     
@@ -116,8 +117,8 @@ struct ItemTransactionView: View {
             .offset(x: draggingItemOffestX)
             .offset(x: draggedItemOffsetX)
             .onTapGesture(perform: {
-                //listProductViewModel.setSelectedProduct(product: product)
-                //navigationViewModel.push(.EditProduct)
+                transactionViewModel.setSelectedTransaction(transaction)
+                navigationViewModel.push(.EditTransaction)
             })
             .simultaneousGesture(
                 DragGesture()
@@ -176,5 +177,6 @@ struct ItemTransactionView_Views: PreviewProvider {
 
         return ItemTransactionView(transaction: transactionEntity)
             .environment(TransactionViewModel(context: context))
+            .environment(NavigationViewModel())
     }
 }

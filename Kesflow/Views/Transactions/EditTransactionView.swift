@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct AddTransactionView: View {
+struct EditTransactionView: View {
     @Environment(ListProductViewModel.self) var listProductViewModel
     @Environment(TransactionViewModel.self) var transactionViewModel
     @Environment(\.dismiss) var dismiss
@@ -34,13 +34,16 @@ struct AddTransactionView: View {
 
     func saveTransaction() {
         guard let product = selectedProduct,
-              let productStock = selectedProductStock else { return }
+              let productStock = selectedProductStock,
+              let selectedProduct = selectedProduct,
+              let selectedTransaction = transactionViewModel.selectedTransaction else { return }
         
         let unFormatSalePrice: Int32 = Int32(unformatDecimal(text: salePrice)) ?? 0
         let unFormatQuantity: Int32 = Int32(unformatDecimal(text: quantity)) ?? 0
 
-        transactionViewModel.saveTransaction(
-            TransactionModel(
+        transactionViewModel.editTransaction(
+            transaction: selectedTransaction,
+            newTransaction: TransactionModel(
                 name: product.name ?? "",
                 quantity: Int16(unFormatQuantity),
                 salePrice: unFormatSalePrice,
@@ -50,11 +53,23 @@ struct AddTransactionView: View {
                 note: note,
                 unit: productStock.unit ?? "",
                 profit: (unFormatSalePrice * unFormatQuantity) - (productStock.costPrice * unFormatQuantity),
-                productStock: productStock
+                productStock: productStock,
+                product: selectedProduct
             )
         )
 
         dismiss()
+    }
+    
+    func getTransaction() {
+        guard let selectedTransaction = transactionViewModel.selectedTransaction else { return }
+        
+        selectedProduct = selectedTransaction.product ?? listProductViewModel.getSpecificProduct(name: selectedTransaction.name)
+        selectedProductStock = selectedTransaction.productStock
+        salePrice = String(selectedTransaction.salePrice)
+        quantity = String(selectedTransaction.quantity)
+        selectedDate = selectedTransaction.createdAt
+        note = selectedTransaction.note ?? ""
     }
 
     var body: some View {
@@ -121,12 +136,13 @@ struct AddTransactionView: View {
                 }
             }
         }
+        .onAppear(perform: getTransaction)
     }
 }
 
 #Preview {
     NavigationStack {
-        AddTransactionView()
+        EditTransactionView()
     }
     .environment(ListProductViewModel(context: DatabaseViewModel().context))
     .environment(TransactionViewModel(context: DatabaseViewModel().context))

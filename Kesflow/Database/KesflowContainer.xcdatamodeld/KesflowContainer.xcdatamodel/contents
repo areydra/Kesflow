@@ -4,6 +4,7 @@
         <attribute name="name" attributeType="String"/>
         <attribute name="recommendedPrice" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="listProductStock" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ProductStockEntity" inverseName="product" inverseEntity="ProductStockEntity"/>
+        <relationship name="listTransaction" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TransactionEntity" inverseName="product" inverseEntity="TransactionEntity"/>
     </entity>
     <entity name="ProductStockEntity" representedClassName="ProductStockEntity" syncable="YES" codeGenerationType="class">
         <attribute name="costPrice" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
@@ -22,6 +23,7 @@
         <attribute name="salePrice" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="totalSalePrice" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="unit" optional="YES" attributeType="String"/>
+        <relationship name="product" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ProductEntity" inverseName="listTransaction" inverseEntity="ProductEntity"/>
         <relationship name="productStock" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ProductStockEntity" inverseName="listTransaction" inverseEntity="ProductStockEntity"/>
     </entity>
 </model>

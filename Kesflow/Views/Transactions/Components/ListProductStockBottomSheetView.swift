@@ -30,8 +30,6 @@ struct ListProductStockBottomSheetView: View {
                 } else {
                     Text("Select product first")
                 }
-            }.onAppear() {
-                print("BS asdacq")
             }
         })
     }
