@@ -66,9 +66,6 @@ struct DateModalView: View {
             .background(.white)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .padding()
-            .onAppear() {
-                print("Date Appears")
-            }
         })
     }
 }

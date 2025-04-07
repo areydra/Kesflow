@@ -19,10 +19,13 @@ struct ContentView: View {
     @State private var listProductViewModel: ListProductViewModel
     @State private var transactionViewModel: TransactionViewModel
     @State private var navigationViewModel = NavigationViewModel()
-    
+    @StateObject private var productSummaryViewModel: ProductSummaryViewModel
+
     init() {
-        _listProductViewModel = .init(initialValue: ListProductViewModel(context: databaseViewModel.context))
-        _transactionViewModel = .init(initialValue: TransactionViewModel(context: databaseViewModel.context))
+        let dbContext = databaseViewModel.context
+        _listProductViewModel = .init(initialValue: ListProductViewModel(context: dbContext))
+        _transactionViewModel = .init(initialValue: TransactionViewModel(context: dbContext))
+        _productSummaryViewModel = .init(wrappedValue: ProductSummaryViewModel(context: dbContext))
     }
 
     var body: some View {
@@ -44,6 +47,7 @@ struct ContentView: View {
         .environment(listProductViewModel)
         .environment(navigationViewModel)
         .environment(transactionViewModel)
+        .environmentObject(productSummaryViewModel)
     }
 }
 

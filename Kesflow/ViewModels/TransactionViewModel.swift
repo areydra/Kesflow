@@ -8,13 +8,17 @@
 import Foundation
 import CoreData
 
+// TODO: Integrate productSummaryViewModel when user do Create/Update/Delete Transaction
+
 @Observable class TransactionViewModel {
     var transactions: [TransactionEntity] = []
     var context: NSManagedObjectContext
     var selectedTransaction: TransactionEntity? = nil
+    var productSummaryViewModel: ProductSummaryViewModel
     
     init (context: NSManagedObjectContext) {
         self.context = context
+        self.productSummaryViewModel = ProductSummaryViewModel(context: context)
         getTransactions()
     }
     
@@ -42,18 +46,56 @@ import CoreData
         newTransaction.productStock = transaction.productStock
 
         transaction.productStock.stock -= transaction.quantity
-        
-        saveDatabase()
+
+        saveDatabase {
+            self.productSummaryViewModel.saveProductSummarySales(.create, newProductSummarySalesModel: ProductSummarySalesModel(
+                totalProductsSold: transaction.quantity,
+                totalSalesRevenue: transaction.totalSalePrice,
+                totalProfit: transaction.profit,
+                date: transaction.date
+            ))
+            self.productSummaryViewModel.saveProductSummaryStock(.create, newProductSummaryStockModel: ProductSummaryStockModel(
+                totalProductStock: transaction.quantity,
+                totalMoneyInStock: transaction.totalSalePrice - transaction.profit
+            ))
+        }
     }
 
     func editTransaction(transaction: TransactionEntity, newTransaction: TransactionModel) {
-        if (transaction.quantity != newTransaction.quantity) || (transaction.productStock != newTransaction.productStock) {
-            guard transaction.productStock != nil else {
-                return
-            }
-
+        var oldProductSummarySales, newProductSummarySales: ProductSummarySalesModel?
+        var oldProductSummaryStock, newProductSummaryStock: ProductSummaryStockModel?
+        let isTransactionQuantityChanged: Bool = ((transaction.quantity != newTransaction.quantity) || (transaction.productStock != newTransaction.productStock)) && transaction.productStock != nil
+        
+        if isTransactionQuantityChanged || (transaction.createdAt != newTransaction.date) {
+            oldProductSummarySales = ProductSummarySalesModel(
+                totalProductsSold: transaction.quantity,
+                totalSalesRevenue: transaction.totalSalePrice,
+                totalProfit: transaction.profit,
+                date: transaction.createdAt ?? Date()
+            )
+            
+            newProductSummarySales = ProductSummarySalesModel(
+                totalProductsSold: newTransaction.quantity,
+                totalSalesRevenue: newTransaction.totalSalePrice,
+                totalProfit: newTransaction.profit,
+                date: newTransaction.date
+            )
+            
+            oldProductSummaryStock = ProductSummaryStockModel(
+                totalProductStock: transaction.quantity,
+                totalMoneyInStock: transaction.totalSalePrice - transaction.profit
+            )
+            
+            newProductSummaryStock = ProductSummaryStockModel(
+                totalProductStock: newTransaction.quantity,
+                totalMoneyInStock: newTransaction.totalSalePrice - newTransaction.profit
+            )
+        }
+        
+        if isTransactionQuantityChanged {
             if transaction.productStock != newTransaction.productStock {
                 transaction.productStock?.stock += transaction.quantity
+
                 transaction.productStock = newTransaction.productStock
                 transaction.productStock?.stock -= newTransaction.quantity
             } else {
@@ -73,7 +115,15 @@ import CoreData
         transaction.profit = newTransaction.profit
         transaction.product = newTransaction.product
 
-        saveDatabase()
+        saveDatabase() {
+            guard let newProductSummarySales = newProductSummarySales,
+                  let oldProductSummarySales = oldProductSummarySales,
+                  let newProductSummaryStock = newProductSummaryStock,
+                  let oldProductSummaryStock = oldProductSummaryStock else { return }
+
+            self.productSummaryViewModel.saveProductSummarySales(.update, newProductSummarySalesModel: newProductSummarySales, oldProductSummaryStockModel: oldProductSummarySales)
+            self.productSummaryViewModel.saveProductSummaryStock(.update, newProductSummaryStockModel: newProductSummaryStock, oldProductSummaryStockModel: oldProductSummaryStock)
+        }
     }
 
     func setSelectedTransaction(_ transaction: TransactionEntity) {
@@ -81,16 +131,31 @@ import CoreData
     }
     
     func deleteTransaction(_ transaction: TransactionEntity) {
+        let productSummarySales = ProductSummarySalesModel(
+            totalProductsSold: transaction.quantity,
+            totalSalesRevenue: transaction.totalSalePrice,
+            totalProfit: transaction.profit,
+            date: transaction.createdAt ?? Date()
+        )
+        let productSummaryStock = ProductSummaryStockModel(
+            totalProductStock: transaction.quantity,
+            totalMoneyInStock: transaction.totalSalePrice - transaction.profit
+        )
         transaction.productStock?.stock += transaction.quantity
         context.delete(transaction)
-        saveDatabase()
+
+        saveDatabase {
+            self.productSummaryViewModel.saveProductSummarySales(.delete, newProductSummarySalesModel: productSummarySales)
+            self.productSummaryViewModel.saveProductSummaryStock(.delete, newProductSummaryStockModel: productSummaryStock)
+        }
     }
     
-    func saveDatabase() {
+    func saveDatabase(action: @escaping () -> Void = {}) {
         transactions.removeAll()
         do {
             try context.save()
             getTransactions()
+            action()
         } catch let error as NSError {
             print("Error while saving database: \(error)")
         }
