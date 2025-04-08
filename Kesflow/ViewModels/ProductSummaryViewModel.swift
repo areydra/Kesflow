@@ -186,13 +186,13 @@ class ProductSummaryViewModel: ObservableObject {
     }
 
     func updateProductSummaryStock(_ action: ProductSummaryAction, newProductSummaryStockModel: ProductSummaryStockModel, oldProductSummaryStockModel: ProductSummaryStockModel? = nil) {
-        guard var productSummaryStock = productSummaryStock else { return }
+        guard let productSummaryStock = self.productSummaryStock else { return }
         
         let isActionDelete = action == .delete
         let totalProductStock = (newProductSummaryStockModel.totalProductStock - (oldProductSummaryStockModel?.totalProductStock ?? 0))
         let totalMoneyInStock = (newProductSummaryStockModel.totalMoneyInStock - (oldProductSummaryStockModel?.totalMoneyInStock ?? 0))
 
-        productSummaryStock = ProductSummaryStockModel(
+        self.productSummaryStock = ProductSummaryStockModel(
             totalProductStock: isActionDelete ? (productSummaryStock.totalProductStock + totalProductStock) : (productSummaryStock.totalProductStock - totalProductStock),
             totalMoneyInStock: isActionDelete ? (productSummaryStock.totalMoneyInStock + totalMoneyInStock) : (productSummaryStock.totalMoneyInStock - totalMoneyInStock)
         )
