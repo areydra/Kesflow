@@ -12,7 +12,9 @@ class DatabaseViewModel {
     let container: NSPersistentContainer
     let context: NSManagedObjectContext
     
-    init() {
+    static let instance = DatabaseViewModel()
+    
+    private init() {
         container = NSPersistentContainer(name: "KesflowContainer")
         container.loadPersistentStores { description, error in
             if let error = error as NSError? {

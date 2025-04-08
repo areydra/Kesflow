@@ -9,13 +9,13 @@ import Foundation
 import CoreData
 
 @Observable class ListProductViewModel {
-    let context: NSManagedObjectContext
+    let context: NSManagedObjectContext = DatabaseViewModel.instance.context
+    static let instance = ListProductViewModel()
     
     var products: [ProductEntity] = []
     var selectedProduct: ProductEntity?
     
-    init(context: NSManagedObjectContext) {
-        self.context = context
+    private init() {
         self.getProducts()
     }
     

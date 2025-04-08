@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct ItemTransactionView: View {
-    @Environment(TransactionViewModel.self) var transactionViewModel
     @Environment(NavigationViewModel.self) var navigationViewModel
-    
+    @State private var transactionViewModel: TransactionViewModel = .instance
+
     var transaction: TransactionEntity
     
     private var dateFormatter: DateFormatter {
@@ -160,7 +160,7 @@ struct ItemTransactionView: View {
 
 struct ItemTransactionView_Views: PreviewProvider {
     static var previews: some View {
-        let context = DatabaseViewModel().context
+        let context = DatabaseViewModel.instance.context
         let transactionEntity: TransactionEntity = TransactionEntity(context: context)
         let productStock = ProductStockEntity(context: context)
         
@@ -176,7 +176,6 @@ struct ItemTransactionView_Views: PreviewProvider {
         transactionEntity.productStock = productStock
 
         return ItemTransactionView(transaction: transactionEntity)
-            .environment(TransactionViewModel(context: context))
             .environment(NavigationViewModel())
     }
 }

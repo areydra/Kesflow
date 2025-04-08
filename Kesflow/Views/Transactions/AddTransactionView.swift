@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct AddTransactionView: View {
-    @Environment(ListProductViewModel.self) var listProductViewModel
-    @Environment(TransactionViewModel.self) var transactionViewModel
+    @State private var listProductViewModel: ListProductViewModel = .instance
+    @State private var transactionViewModel: TransactionViewModel = .instance
+
     @Environment(\.dismiss) var dismiss
     
     @State var salePrice: String = ""
@@ -128,6 +129,4 @@ struct AddTransactionView: View {
     NavigationStack {
         AddTransactionView()
     }
-    .environment(ListProductViewModel(context: DatabaseViewModel().context))
-    .environment(TransactionViewModel(context: DatabaseViewModel().context))
 }

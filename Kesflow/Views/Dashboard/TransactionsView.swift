@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TransactionsView: View {
-    @Environment(TransactionViewModel.self) var transactionViewModel
+    @State private var transactionViewModel: TransactionViewModel = .instance
  
     var body: some View {
         ScrollView {
@@ -44,5 +44,4 @@ struct TransactionsView: View {
 
 #Preview {
     TransactionsView()
-        .environment(TransactionViewModel(context: DatabaseViewModel().context))
 }

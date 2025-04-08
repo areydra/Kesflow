@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct ItemProductView: View {
-    @Environment(ListProductViewModel.self) private var listProductViewModel
     @Environment(NavigationViewModel.self) private var navigationViewModel
 
+    @State private var listProductViewModel: ListProductViewModel = .instance
     @State private var selectedProduct: ProductEntity? = nil
     @State private var showAlertDelete: Bool = false
     @State private var draggingItemOffestX: CGFloat = 0
@@ -116,7 +116,7 @@ struct ItemProductView: View {
 
 struct ItemProductView_Views: PreviewProvider {
     static var previews: some View {
-        let context = DatabaseViewModel().context
+        let context = DatabaseViewModel.instance.context
         let productEntity: ProductEntity = ProductEntity(context: context)
         let productStock = ProductStockEntity(context: context)
         var listProductStock: [ProductStockEntity] = []
@@ -131,7 +131,6 @@ struct ItemProductView_Views: PreviewProvider {
         productEntity.listProductStock = NSSet(array: listProductStock)
 
         return ItemProductView(product: productEntity)
-            .environment(ListProductViewModel(context: context))
             .environment(NavigationViewModel())
     }
 }

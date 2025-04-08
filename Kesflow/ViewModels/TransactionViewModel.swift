@@ -8,17 +8,15 @@
 import Foundation
 import CoreData
 
-// TODO: Integrate productSummaryViewModel when user do Create/Update/Delete Transaction
-
 @Observable class TransactionViewModel {
-    var transactions: [TransactionEntity] = []
-    var context: NSManagedObjectContext
-    var selectedTransaction: TransactionEntity? = nil
-    var productSummaryViewModel: ProductSummaryViewModel
+    static let instance = TransactionViewModel()
     
-    init (context: NSManagedObjectContext) {
-        self.context = context
-        self.productSummaryViewModel = ProductSummaryViewModel(context: context)
+    var transactions: [TransactionEntity] = []
+    var context: NSManagedObjectContext = DatabaseViewModel.instance.context
+    var selectedTransaction: TransactionEntity? = nil
+    var productSummaryViewModel: ProductSummaryViewModel = .instance
+    
+    init () {
         getTransactions()
     }
     

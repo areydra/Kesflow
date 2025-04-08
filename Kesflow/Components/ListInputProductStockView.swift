@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ListInputProductStockView: View {
-    @Environment(ListProductViewModel.self) var listProductViewModel
+    @State private var listProductViewModel: ListProductViewModel = .instance
     @Binding var listProductStock: [ProductStockEntity]
     
     var body: some View {

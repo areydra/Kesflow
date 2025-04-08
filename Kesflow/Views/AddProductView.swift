@@ -9,7 +9,7 @@ import SwiftUI
 
 struct AddProductView: View {
     @Environment(\.dismiss) var dismiss
-    @Environment(ListProductViewModel.self) var listProductViewModel
+    @State private var listProductViewModel: ListProductViewModel = .instance
 
     @State private var productName: String = ""
     @State private var recommendedPrice: String = ""
@@ -85,5 +85,4 @@ struct AddProductView: View {
     NavigationStack {
         AddProductView()
     }
-    .environment(ListProductViewModel(context: DatabaseViewModel().context))
 }

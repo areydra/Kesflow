@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProductsView: View {
-    @Environment(ListProductViewModel.self) var listProductViewModel
+    @State private var listProductViewModel: ListProductViewModel = .instance
 
     var body: some View {
         ScrollView {
@@ -53,5 +53,4 @@ struct ProductsView: View {
     NavigationStack {
         ProductsView()
     }
-    .environment(ListProductViewModel(context: DatabaseViewModel().context))
 }

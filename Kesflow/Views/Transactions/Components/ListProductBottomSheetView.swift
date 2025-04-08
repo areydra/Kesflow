@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ListProductBottomSheetView: View {
-    @Environment(ListProductViewModel.self) var listProductViewModel
+    @State private var listProductViewModel: ListProductViewModel = .instance
 
     @Binding var isShow: Bool
     @Binding var selectedProduct: ProductEntity?
@@ -43,9 +43,6 @@ struct ListProductBottomSheetView: View {
 
 struct ListProductBottomSheetView_Preview: PreviewProvider {
     static var previews: some View {
-        let context = DatabaseViewModel().context
-
         ListProductBottomSheetView(isShow: .constant(true), selectedProduct: .constant(nil), selectedProductStock: .constant(nil))
-            .environment(ListProductViewModel(context: context))
     }
 }

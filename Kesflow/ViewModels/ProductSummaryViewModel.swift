@@ -16,16 +16,17 @@ enum ProductSummaryAction {
 }
 
 class ProductSummaryViewModel: ObservableObject {
+    static let instance = ProductSummaryViewModel()
+    
     @Published var productSummarySales: ProductSummarySalesEntity? = nil
     @Published var selectedDate: Date? = nil
     @Published var isShowCalendarModal: Bool = false
     @Published var productSummaryStock: ProductSummaryStockModel? = nil
     
-    var context: NSManagedObjectContext
+    var context: NSManagedObjectContext = DatabaseViewModel.instance.context
     var cancellables = Set<AnyCancellable>()
     
-    init(context: NSManagedObjectContext) {
-        self.context = context
+    private init() {
         getProductSummary()
         getTotalProductSummaryStock()
         subscriptionSelectedDate()
