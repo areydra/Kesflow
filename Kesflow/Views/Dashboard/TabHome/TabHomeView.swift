@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TabHomeView: View {
-    @StateObject private var productSummaryViewModel: ProductSummaryViewModel = .instance
+    @EnvironmentObject private var productSummaryViewModel: ProductSummaryViewModel
     
     var body: some View {
         ZStack {
@@ -31,4 +31,5 @@ struct TabHomeView: View {
 
 #Preview {
     TabHomeView()
+        .environmentObject(ProductSummaryViewModel())
 }

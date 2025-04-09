@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ItemProductView: View {
     @Environment(NavigationViewModel.self) private var navigationViewModel
+    @EnvironmentObject var productSummaryViewModel: ProductSummaryViewModel
 
     @State private var listProductViewModel: ListProductViewModel = .instance
     @State private var selectedProduct: ProductEntity? = nil
@@ -16,7 +17,7 @@ struct ItemProductView: View {
     @State private var draggingItemOffestX: CGFloat = 0
     @State private var draggedItemOffsetX: CGFloat = 0
 
-    var product: ProductEntity
+    @ObservedObject var product: ProductEntity
 
     var body: some View {
         ZStack {
@@ -56,17 +57,8 @@ struct ItemProductView: View {
 
                     if let listProductStock = product.listProductStock?.allObjects as? [ProductStockEntity] {
                         ForEach(listProductStock) { productStock in
-                             HStack {
-                                 Text("Cost price: Rp\(formatDecimalInThousand(text: String( productStock.costPrice)))")
-                                     .font(.footnote)
-                                     .foregroundStyle(Color("TextPrimary"))
-                                 Spacer()
-                                 Text("\(productStock.stock) \(productStock.unit ?? "")")
-                                     .font(.footnote)
-                                     .foregroundStyle(Color("TextPrimary"))
-                             }
-                         }
-
+                            ItemProductStockView(productStock: productStock)
+                        }
                     }
                 }
             }
@@ -106,13 +98,33 @@ struct ItemProductView: View {
                 title: Text("Delete \(selectedProduct?.name ?? "Product")"),
                 primaryButton: .destructive(Text("Delete"), action: {
                     guard let selectedProduct = selectedProduct else { return }
-                    listProductViewModel.deleteProduct(product: selectedProduct)
+                    Task {
+                        try await listProductViewModel.deleteProduct(product: selectedProduct)
+                        productSummaryViewModel.refreshProductSummaryStock()
+                    }
                 }),
                 secondaryButton: .cancel()
             )
         }
     }
 }
+
+private struct ItemProductStockView: View {
+    @ObservedObject var productStock: ProductStockEntity
+    
+    var body: some View {
+        HStack {
+            Text("Cost price: Rp\(formatDecimalInThousand(text: String(productStock.costPrice)))")
+                .font(.footnote)
+                .foregroundStyle(Color("TextPrimary"))
+            Spacer()
+            Text("\(productStock.stock) \(productStock.unit ?? "")")
+                .font(.footnote)
+                .foregroundStyle(Color("TextPrimary"))
+        }
+    }
+}
+
 
 struct ItemProductView_Views: PreviewProvider {
     static var previews: some View {

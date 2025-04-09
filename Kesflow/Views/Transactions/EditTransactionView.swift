@@ -12,6 +12,7 @@ struct EditTransactionView: View {
     @State private var transactionViewModel: TransactionViewModel = .instance
 
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var productSummaryViewModel: ProductSummaryViewModel
     
     @State var salePrice: String = ""
     @State var quantity: String = ""
@@ -41,23 +42,22 @@ struct EditTransactionView: View {
         
         let unFormatSalePrice: Int32 = Int32(unformatDecimal(text: salePrice)) ?? 0
         let unFormatQuantity: Int32 = Int32(unformatDecimal(text: quantity)) ?? 0
-
-        transactionViewModel.editTransaction(
-            transaction: selectedTransaction,
-            newTransaction: TransactionModel(
-                name: product.name ?? "",
-                quantity: Int16(unFormatQuantity),
-                salePrice: unFormatSalePrice,
-                totalSalePrice: unFormatSalePrice * unFormatQuantity,
-                date: selectedDate ?? Date(),
-                costPrice: productStock.costPrice,
-                note: note,
-                unit: productStock.unit ?? "",
-                profit: (unFormatSalePrice * unFormatQuantity) - (productStock.costPrice * unFormatQuantity),
-                productStock: productStock,
-                product: selectedProduct
-            )
+        let newTransaction = TransactionModel(
+            name: product.name ?? "",
+            quantity: Int16(unFormatQuantity),
+            salePrice: unFormatSalePrice,
+            totalSalePrice: unFormatSalePrice * unFormatQuantity,
+            date: selectedDate ?? Date(),
+            costPrice: productStock.costPrice,
+            note: note,
+            unit: productStock.unit ?? "",
+            profit: (unFormatSalePrice * unFormatQuantity) - (productStock.costPrice * unFormatQuantity),
+            productStock: productStock,
+            product: selectedProduct
         )
+        
+        productSummaryViewModel.edit(oldTransaction: selectedTransaction, newTransaction: newTransaction)
+        transactionViewModel.editTransaction(transaction: selectedTransaction, newTransaction: newTransaction)
 
         dismiss()
     }
@@ -145,4 +145,5 @@ struct EditTransactionView: View {
     NavigationStack {
         EditTransactionView()
     }
+    .environmentObject(ProductSummaryViewModel())
 }

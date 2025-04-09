@@ -8,6 +8,7 @@
 import Foundation
 import CoreData
 
+@MainActor
 @Observable class ListProductViewModel {
     let context: NSManagedObjectContext = DatabaseViewModel.instance.context
     static let instance = ListProductViewModel()
@@ -43,23 +44,31 @@ import CoreData
         }
     }
 
-    func addProduct(name: String, recommendedPrice: Int32, listProductStock: [ProductStockEntity]) {
+    func addProduct(name: String, recommendedPrice: Int32, listProductStock: [ProductStockEntity]) async throws {
         let newProduct = ProductEntity(context: context)
         newProduct.name = name
         newProduct.recommendedPrice = recommendedPrice
         newProduct.listProductStock = NSSet(array: listProductStock)
         
-        saveDataIntoDatabase()
+        do {
+            try await saveDataIntoDatabase()
+        } catch let error {
+            throw error
+        }
     }
 
-    func editProduct(newName: String, newRecommendedPrice: Int32, listProductStock: [ProductStockEntity]) {
+    func editProduct(newName: String, newRecommendedPrice: Int32, listProductStock: [ProductStockEntity]) async throws {
         guard let selectedProduct = self.selectedProduct else { return }
         
         selectedProduct.name = newName
         selectedProduct.recommendedPrice = newRecommendedPrice
         selectedProduct.listProductStock = NSSet(array: listProductStock)
         
-        saveDataIntoDatabase()
+        do {
+            try await saveDataIntoDatabase()
+        } catch let error {
+            throw error
+        }
     }
     
     func productStockEntity(costPrice: Int32, stock: Int16, unit: String) -> ProductStockEntity {
@@ -71,9 +80,14 @@ import CoreData
         return productStock
     }
     
-    func deleteProduct(product: ProductEntity) {
+    func deleteProduct(product: ProductEntity) async throws {
         self.context.delete(product)
-        saveDataIntoDatabase()
+        
+        do {
+            try await saveDataIntoDatabase()
+        } catch let error {
+            throw error
+        }
     }
     
     func setSelectedProduct(product: ProductEntity) {
@@ -84,13 +98,14 @@ import CoreData
         self.selectedProduct = nil
     }
     
-    func saveDataIntoDatabase() {
+    func saveDataIntoDatabase() async throws {
         do {
             self.products.removeAll()
             try self.context.save()
             self.getProducts()
         } catch let error as NSError {
             print("Error while saving data into database: \(error)")
+            throw error
         }
     }
 }

@@ -12,6 +12,7 @@ struct AddTransactionView: View {
     @State private var transactionViewModel: TransactionViewModel = .instance
 
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var productSummaryViewModel: ProductSummaryViewModel
     
     @State var salePrice: String = ""
     @State var quantity: String = ""
@@ -40,20 +41,22 @@ struct AddTransactionView: View {
         let unFormatSalePrice: Int32 = Int32(unformatDecimal(text: salePrice)) ?? 0
         let unFormatQuantity: Int32 = Int32(unformatDecimal(text: quantity)) ?? 0
 
-        transactionViewModel.saveTransaction(
-            TransactionModel(
-                name: product.name ?? "",
-                quantity: Int16(unFormatQuantity),
-                salePrice: unFormatSalePrice,
-                totalSalePrice: unFormatSalePrice * unFormatQuantity,
-                date: selectedDate ?? Date(),
-                costPrice: productStock.costPrice,
-                note: note,
-                unit: productStock.unit ?? "",
-                profit: (unFormatSalePrice * unFormatQuantity) - (productStock.costPrice * unFormatQuantity),
-                productStock: productStock
-            )
+        let transaction = TransactionModel(
+            name: product.name ?? "",
+            quantity: Int16(unFormatQuantity),
+            salePrice: unFormatSalePrice,
+            totalSalePrice: unFormatSalePrice * unFormatQuantity,
+            date: selectedDate ?? Date(),
+            costPrice: productStock.costPrice,
+            note: note,
+            unit: productStock.unit ?? "",
+            profit: (unFormatSalePrice * unFormatQuantity) - (productStock.costPrice * unFormatQuantity),
+            productStock: productStock
         )
+
+        
+        productSummaryViewModel.add(transaction: transaction)
+        transactionViewModel.saveTransaction(transaction)
 
         dismiss()
     }
@@ -129,4 +132,5 @@ struct AddTransactionView: View {
     NavigationStack {
         AddTransactionView()
     }
+    .environmentObject(ProductSummaryViewModel())
 }

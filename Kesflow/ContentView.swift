@@ -16,6 +16,7 @@ enum ViewKeys: String, CaseIterable, Hashable {
 
 struct ContentView: View {
     @State private var navigationViewModel = NavigationViewModel()
+    @StateObject private var productSummaryViewModel: ProductSummaryViewModel = .init()
 
     var body: some View {
         NavigationStack(path: $navigationViewModel.path) {
@@ -34,6 +35,7 @@ struct ContentView: View {
             }
         }
         .environment(navigationViewModel)
+        .environmentObject(productSummaryViewModel)
     }
 }
 

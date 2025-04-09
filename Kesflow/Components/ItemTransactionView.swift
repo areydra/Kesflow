@@ -9,9 +9,10 @@ import SwiftUI
 
 struct ItemTransactionView: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
+    @EnvironmentObject var productSummaryViewModel: ProductSummaryViewModel
     @State private var transactionViewModel: TransactionViewModel = .instance
 
-    var transaction: TransactionEntity
+    @ObservedObject var transaction: TransactionEntity
     
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -147,6 +148,7 @@ struct ItemTransactionView: View {
                 Alert(
                     title: Text("Delete \(transaction.name ?? "Transaction")"),
                     primaryButton: .destructive(Text("Delete"), action: {
+                        productSummaryViewModel.delete(transaction: transaction)
                         transactionViewModel.deleteTransaction(transaction)
                     }),
                     secondaryButton: .cancel()
@@ -177,5 +179,6 @@ struct ItemTransactionView_Views: PreviewProvider {
 
         return ItemTransactionView(transaction: transactionEntity)
             .environment(NavigationViewModel())
+            .environmentObject(ProductSummaryViewModel())
     }
 }

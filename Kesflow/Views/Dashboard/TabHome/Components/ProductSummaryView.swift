@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProductSummaryView: View {
-    @StateObject private var productSummaryViewModel: ProductSummaryViewModel = .instance
+    @EnvironmentObject var productSummaryViewModel: ProductSummaryViewModel
 
     var dateFormat: DateFormatter {
         let formatter = DateFormatter()
@@ -106,4 +106,5 @@ struct ProductSummaryView: View {
 
 #Preview {
     ProductSummaryView()
+        .environmentObject(ProductSummaryViewModel())
 }

@@ -9,6 +9,8 @@ import SwiftUI
 
 struct EditProductView: View {
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var productSummaryViewModel: ProductSummaryViewModel
+    
     @State private var listProductViewModel: ListProductViewModel = .instance
     
     @State private var productName: String = ""
@@ -29,11 +31,14 @@ struct EditProductView: View {
     }
 
     func onSave() {
-        listProductViewModel.editProduct(
-            newName: productName,
-            newRecommendedPrice: Int32(recommendedPrice.isEmpty ? "0" : unformatDecimal(text: recommendedPrice)) ?? 0,
-            listProductStock: listProductStock
-        )
+        Task {
+            try await listProductViewModel.editProduct(
+                newName: productName,
+                newRecommendedPrice: Int32(recommendedPrice.isEmpty ? "0" : unformatDecimal(text: recommendedPrice)) ?? 0,
+                listProductStock: listProductStock
+            )
+            productSummaryViewModel.refreshProductSummaryStock()
+        }
         dismiss()
     }
 

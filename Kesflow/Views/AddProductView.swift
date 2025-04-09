@@ -9,6 +9,8 @@ import SwiftUI
 
 struct AddProductView: View {
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var productSummaryViewModel: ProductSummaryViewModel
+    
     @State private var listProductViewModel: ListProductViewModel = .instance
 
     @State private var productName: String = ""
@@ -16,11 +18,15 @@ struct AddProductView: View {
     @State private var listProductStock: [ProductStockEntity] = []
 
     func onSave() {
-        listProductViewModel.addProduct(
-            name: productName,
-            recommendedPrice: Int32(unformatDecimal(text: recommendedPrice)) ?? 0,
-            listProductStock: listProductStock
-        )
+        Task {
+            try await listProductViewModel.addProduct(
+                name: productName,
+                recommendedPrice: Int32(unformatDecimal(text: recommendedPrice)) ?? 0,
+                listProductStock: listProductStock
+            )
+            productSummaryViewModel.refreshProductSummaryStock()
+        }
+        productSummaryViewModel.refreshProductSummaryStock()
         dismiss()
     }
 
