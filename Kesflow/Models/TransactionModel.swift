@@ -34,4 +34,18 @@ struct TransactionModel {
         self.productStock = productStock
         self.product = product
     }
+    
+    init(from entity: TransactionEntity) {
+        self.name = entity.name ?? ""
+        self.quantity = entity.quantity
+        self.salePrice = entity.salePrice
+        self.totalSalePrice = entity.totalSalePrice
+        self.date = entity.createdAt ?? Date()
+        self.costPrice = entity.costPrice
+        self.note = entity.note ?? ""
+        self.unit = entity.unit ?? ""
+        self.profit = entity.profit
+        self.productStock = entity.productStock ?? ProductStockEntity(context: DatabaseViewModel.instance.context)
+        self.product = entity.product
+    }
 }

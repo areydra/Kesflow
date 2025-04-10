@@ -56,8 +56,11 @@ struct EditTransactionView: View {
             product: selectedProduct
         )
         
-        productSummaryViewModel.edit(oldTransaction: selectedTransaction, newTransaction: newTransaction)
-        transactionViewModel.editTransaction(transaction: selectedTransaction, newTransaction: newTransaction)
+        Task {
+            let oldTransactionModel = TransactionModel(from: selectedTransaction)
+            await transactionViewModel.editTransaction(transaction: selectedTransaction, newTransaction: newTransaction)
+            productSummaryViewModel.edit(oldTransaction: oldTransactionModel, newTransaction: newTransaction)
+        }
 
         dismiss()
     }

@@ -50,7 +50,7 @@ class ProductSummaryStockService: ObservableObject {
     
     func edit(
         productSummaryStock: ProductSummaryStockModel,
-        oldTransaction: TransactionEntity,
+        oldTransaction: TransactionModel,
         newTransaction: TransactionModel
     ) -> ProductSummaryStockModel {
         let oldProductSummaryStock: ProductSummaryStockModel = ProductSummaryStockModel(
@@ -74,7 +74,7 @@ class ProductSummaryStockService: ObservableObject {
     
     func delete(
         productSummaryStock: ProductSummaryStockModel,
-        transaction: TransactionEntity
+        transaction: TransactionModel
     ) -> ProductSummaryStockModel {
         return ProductSummaryStockModel(
             totalProductStock: productSummaryStock.totalProductStock + transaction.quantity,

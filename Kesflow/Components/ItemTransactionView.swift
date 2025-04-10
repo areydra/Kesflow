@@ -148,8 +148,11 @@ struct ItemTransactionView: View {
                 Alert(
                     title: Text("Delete \(transaction.name ?? "Transaction")"),
                     primaryButton: .destructive(Text("Delete"), action: {
-                        productSummaryViewModel.delete(transaction: transaction)
-                        transactionViewModel.deleteTransaction(transaction)
+                        Task {
+                            let transactionModel = TransactionModel(from: transaction)
+                            await transactionViewModel.deleteTransaction(transaction)
+                            productSummaryViewModel.delete(transaction: transactionModel)
+                        }
                     }),
                     secondaryButton: .cancel()
                 )

@@ -21,7 +21,7 @@ class ProductSummaryViewModel: ObservableObject {
     var cancellables = Set<AnyCancellable>()
     
     init() {
-        self.productSummarySales = self.productSummarySalesService.get()
+        self.productSummarySales = self.productSummarySalesService.getLatest()
         self.productSummaryStock = self.productSummaryStockService.get()
         subscriptionSelectedDate()
     }
@@ -58,14 +58,13 @@ class ProductSummaryViewModel: ObservableObject {
         }
     }
     
-    func edit(oldTransaction: TransactionEntity, newTransaction: TransactionModel) {
-        let isTransactionQuantityChanged: Bool = ((oldTransaction.quantity != newTransaction.quantity) || (oldTransaction.productStock != newTransaction.productStock)) && oldTransaction.productStock != nil
-
+    func edit(oldTransaction: TransactionModel, newTransaction: TransactionModel) {
+        let isTransactionChanged: Bool = (oldTransaction.quantity != newTransaction.quantity) || (oldTransaction.productStock != newTransaction.productStock) || (oldTransaction.date != newTransaction.date)
+        
         guard let productSummaryStock = self.productSummaryStock,
-              isTransactionQuantityChanged || (oldTransaction.createdAt != newTransaction.date) else { return }
+              isTransactionChanged else { return }
 
         self.productSummarySales = productSummarySalesService.edit(
-            currentProductSummarySales: self.productSummarySales,
             oldTransaction: oldTransaction,
             newTransaction: newTransaction
         )
@@ -77,11 +76,8 @@ class ProductSummaryViewModel: ObservableObject {
         )
     }
     
-    func delete(transaction: TransactionEntity) {
-        self.productSummarySales = productSummarySalesService.delete(
-            currentProductSummarySales: self.productSummarySales,
-            transaction: transaction
-        )
+    func delete(transaction: TransactionModel) {
+        self.productSummarySales = productSummarySalesService.delete(transaction: transaction)
         
         if let productSummaryStock = self.productSummaryStock {
             self.productSummaryStock = productSummaryStockService.delete(

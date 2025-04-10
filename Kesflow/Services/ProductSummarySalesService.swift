@@ -9,11 +9,11 @@ import Foundation
 import CoreData
 import Combine
 
-class ProductSummarySalesService: ObservableObject {
+class ProductSummarySalesService {
     var context: NSManagedObjectContext = DatabaseViewModel.instance.context
     var cancellables = Set<AnyCancellable>()
     
-    func get() -> ProductSummarySalesEntity? {
+    func getLatest() -> ProductSummarySalesEntity? {
         let request: NSFetchRequest = NSFetchRequest<ProductSummarySalesEntity>(entityName: "ProductSummarySalesEntity")
 
         request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
@@ -28,16 +28,14 @@ class ProductSummarySalesService: ObservableObject {
     }
     
     func getSpecificByDate(date: Date) -> ProductSummarySalesEntity? {
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: date)
-        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? Date()
-        let request: NSFetchRequest<ProductSummarySalesEntity> = NSFetchRequest(entityName: "ProductSummarySalesEntity")
-
         var productSummarySales: ProductSummarySalesEntity? = nil
+        let request: NSFetchRequest<ProductSummarySalesEntity> = NSFetchRequest(entityName: "ProductSummarySalesEntity")
+        let bounds = dayBounds(for: date)
+
+        request.predicate = NSPredicate(format: "date >= %@ AND date < %@", bounds.start as NSDate, bounds.end as NSDate)
+        request.fetchLimit = 1
 
         do {
-            request.predicate = NSPredicate(format: "date >= %@ AND date < %@", startOfDay as NSDate, endOfDay as NSDate)
-            request.fetchLimit = 1
             productSummarySales = try context.fetch(request).first
         } catch {
             print("Error while fetching specific product summary: \(error)")
@@ -46,144 +44,55 @@ class ProductSummarySalesService: ObservableObject {
         
         return productSummarySales
     }
-
-    func getEntity(
-        currentProductSummarySales: ProductSummarySalesEntity? = nil,
-        productSummarySales: ProductSummarySalesModel
-    ) -> ProductSummarySalesEntity {
-        if let currentProductSummarySales = currentProductSummarySales,
-           let productSummaryEntityDate = currentProductSummarySales.date,
-           let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: productSummaryEntityDate),
-           productSummarySales.date >= productSummaryEntityDate && productSummarySales.date < tomorrow
-        {
-            return currentProductSummarySales
-        } else if let productSummarySalesEntityByDate = self.getSpecificByDate(date: productSummarySales.date) {
-            return productSummarySalesEntityByDate
-        } else {
-            return ProductSummarySalesEntity(context: context)
-        }
+    
+    private func dayBounds(for date: Date) -> (start: Date, end: Date) {
+        let start = Calendar.current.startOfDay(for: date)
+        let end = Calendar.current.date(byAdding: .day, value: 1, to: start) ?? start
+        return (start, end)
     }
     
-    func add(
-        currentProductSummarySales: ProductSummarySalesEntity? = nil,
-        transaction: TransactionModel
-    ) -> ProductSummarySalesEntity? {
-        handleProductSummarySales(
-            isActionDelete: false,
-            currentProductSummarySales: currentProductSummarySales,
-            productSummaryModel:
-                ProductSummarySalesModel(
-                    totalProductsSold: transaction.quantity,
-                    totalSalesRevenue: transaction.totalSalePrice,
-                    totalProfit: transaction.profit,
-                    date: transaction.date
-                )
-        )
-        
+    func add(transaction: TransactionModel) -> ProductSummarySalesEntity? {
+        handleProductSummarySales(isActionDelete: false, productSummaryModel: ProductSummarySalesModel(from: transaction))
         saveToDatabase()
-        return get()
+        return getLatest()
     }
 
     
-    func edit(
-        currentProductSummarySales: ProductSummarySalesEntity? = nil,
-        oldTransaction: TransactionEntity,
-        newTransaction: TransactionModel
-    ) -> ProductSummarySalesEntity? {
-        let oldProductSummarySalesModel = ProductSummarySalesModel(
-            totalProductsSold: oldTransaction.quantity,
-            totalSalesRevenue: oldTransaction.totalSalePrice,
-            totalProfit: oldTransaction.profit,
-            date: oldTransaction.createdAt ?? Date()
-        )
-
-        let newProductSummarySalesModel = ProductSummarySalesModel(
-            totalProductsSold: newTransaction.quantity,
-            totalSalesRevenue: newTransaction.totalSalePrice,
-            totalProfit: newTransaction.profit,
-            date: newTransaction.date
-        )
-        
-        if newProductSummarySalesModel.date != oldProductSummarySalesModel.date {
+    func edit(oldTransaction: TransactionModel, newTransaction: TransactionModel) -> ProductSummarySalesEntity? {
+        if newTransaction.date != oldTransaction.date {
             // delete old summary based on date
-            handleProductSummarySales(
-                isActionDelete: true,
-                currentProductSummarySales: currentProductSummarySales,
-                productSummaryModel:
-                    ProductSummarySalesModel(
-                        totalProductsSold: oldProductSummarySalesModel.totalProductsSold,
-                        totalSalesRevenue: oldProductSummarySalesModel.totalSalesRevenue,
-                        totalProfit: oldProductSummarySalesModel.totalProfit,
-                        date: oldProductSummarySalesModel.date
-                    )
-            )
+            handleProductSummarySales(isActionDelete: true, productSummaryModel: ProductSummarySalesModel(from: oldTransaction))
 
             // add new summary in based on new date
-            handleProductSummarySales(
-                isActionDelete: false,
-                currentProductSummarySales: currentProductSummarySales,
-                productSummaryModel:
-                    ProductSummarySalesModel(
-                        totalProductsSold: newProductSummarySalesModel.totalProductsSold,
-                        totalSalesRevenue: newProductSummarySalesModel.totalSalesRevenue,
-                        totalProfit: newProductSummarySalesModel.totalProfit,
-                        date: newProductSummarySalesModel.date
-                    )
-            )
+            handleProductSummarySales(isActionDelete: false, productSummaryModel: ProductSummarySalesModel(from: newTransaction))
         } else {
             handleProductSummarySales(
                 isActionDelete: false,
-                currentProductSummarySales: currentProductSummarySales,
                 productSummaryModel:
                     ProductSummarySalesModel(
-                        totalProductsSold: newProductSummarySalesModel.totalProductsSold - oldProductSummarySalesModel.totalProductsSold,
-                        totalSalesRevenue: newProductSummarySalesModel.totalSalesRevenue - oldProductSummarySalesModel.totalSalesRevenue,
-                        totalProfit: newProductSummarySalesModel.totalProfit - oldProductSummarySalesModel.totalProfit,
-                        date: newProductSummarySalesModel.date
+                        totalProductsSold: newTransaction.quantity - oldTransaction.quantity,
+                        totalSalesRevenue: newTransaction.totalSalePrice - oldTransaction.totalSalePrice,
+                        totalProfit: newTransaction.profit - oldTransaction.profit,
+                        date: newTransaction.date
                     )
             )
         }
         
         saveToDatabase()
-        return get()
+        return getLatest()
     }
     
-    func delete(
-        currentProductSummarySales: ProductSummarySalesEntity? = nil,
-        transaction: TransactionEntity
-    ) -> ProductSummarySalesEntity? {
-        let productSummarySalesModel = ProductSummarySalesModel(
-            totalProductsSold: transaction.quantity,
-            totalSalesRevenue: transaction.totalSalePrice,
-            totalProfit: transaction.profit,
-            date: transaction.createdAt ?? Date()
-        )
-        
-        handleProductSummarySales(
-            isActionDelete: true,
-            currentProductSummarySales: currentProductSummarySales,
-            productSummaryModel:
-                ProductSummarySalesModel(
-                    totalProductsSold: productSummarySalesModel.totalProductsSold,
-                    totalSalesRevenue: productSummarySalesModel.totalSalesRevenue,
-                    totalProfit: productSummarySalesModel.totalProfit,
-                    date: productSummarySalesModel.date
-                )
-            )
-        
+    func delete(transaction: TransactionModel) -> ProductSummarySalesEntity? {
+        handleProductSummarySales(isActionDelete: true, productSummaryModel: ProductSummarySalesModel(from: transaction))
         saveToDatabase()
-        return get()
+        return getLatest()
     }
     
     func handleProductSummarySales(
         isActionDelete: Bool,
-        currentProductSummarySales: ProductSummarySalesEntity? = nil,
         productSummaryModel: ProductSummarySalesModel
     ) {
-        let productSummarySalesEntity: ProductSummarySalesEntity = getEntity(
-            currentProductSummarySales: currentProductSummarySales,
-            productSummarySales: productSummaryModel
-        )
+        let productSummarySalesEntity: ProductSummarySalesEntity = self.getSpecificByDate(date: productSummaryModel.date) ?? ProductSummarySalesEntity(context: context)
 
         productSummarySalesEntity.totalProductsSold = isActionDelete ? (productSummarySalesEntity.totalProductsSold - productSummaryModel.totalProductsSold) : (productSummarySalesEntity.totalProductsSold + productSummaryModel.totalProductsSold)
         productSummarySalesEntity.totalSalesRevenue = isActionDelete ? (productSummarySalesEntity.totalSalesRevenue - productSummaryModel.totalSalesRevenue) : (productSummarySalesEntity.totalSalesRevenue + productSummaryModel.totalSalesRevenue)

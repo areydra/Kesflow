@@ -54,9 +54,10 @@ struct AddTransactionView: View {
             productStock: productStock
         )
 
-        
-        productSummaryViewModel.add(transaction: transaction)
-        transactionViewModel.saveTransaction(transaction)
+        Task {
+            await transactionViewModel.saveTransaction(transaction)
+            productSummaryViewModel.add(transaction: transaction)
+        }
 
         dismiss()
     }

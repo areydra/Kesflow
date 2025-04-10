@@ -8,6 +8,7 @@
 import Foundation
 import CoreData
 
+@MainActor
 @Observable class TransactionViewModel {
     static let instance = TransactionViewModel()
     
@@ -29,7 +30,7 @@ import CoreData
         }
     }
     
-    func saveTransaction(_ transaction: TransactionModel) {
+    func saveTransaction(_ transaction: TransactionModel) async {
         let newTransaction = TransactionEntity(context: self.context)
         newTransaction.name = transaction.name
         newTransaction.quantity = transaction.quantity
@@ -43,10 +44,10 @@ import CoreData
         newTransaction.productStock = transaction.productStock
 
         transaction.productStock.stock -= transaction.quantity
-        saveDatabase()
+        await saveDatabase()
     }
 
-    func editTransaction(transaction: TransactionEntity, newTransaction: TransactionModel) {
+    func editTransaction(transaction: TransactionEntity, newTransaction: TransactionModel) async {
         if (
             ((transaction.quantity != newTransaction.quantity) || (transaction.productStock != newTransaction.productStock))
             &&
@@ -74,21 +75,21 @@ import CoreData
         transaction.profit = newTransaction.profit
         transaction.product = newTransaction.product
 
-        saveDatabase()
+        await saveDatabase()
     }
 
     func setSelectedTransaction(_ transaction: TransactionEntity) {
         self.selectedTransaction = transaction
     }
     
-    func deleteTransaction(_ transaction: TransactionEntity) {
+    func deleteTransaction(_ transaction: TransactionEntity) async {
         transaction.productStock?.stock += transaction.quantity
         context.delete(transaction)
 
-        saveDatabase()
+        await saveDatabase()
     }
     
-    func saveDatabase() {
+    func saveDatabase() async {
         transactions.removeAll()
         do {
             try context.save()
