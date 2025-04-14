@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct TabProductView: View {
-    @State private var listProductViewModel: TabProductViewModel = .instance
+    @Environment(TabProductViewModel.self) private var tabProductViewModel
+    let productSummaryService: ProductSummaryServiceProviding
 
     var body: some View {
         ScrollView {
@@ -32,13 +33,17 @@ struct TabProductView: View {
             .padding(.bottom)
             
             LazyVStack() {
-                if (listProductViewModel.products.isEmpty) {
+                if (tabProductViewModel.products.isEmpty) {
                     Text("Product is Empty. You can create a new product")
                 } else {
-                    ForEach(listProductViewModel.products) { product in
-                        ItemProductView(product: product)
+                    ForEach(tabProductViewModel.products) { product in
+                        ItemProductView(
+                            product: product,
+                            tabProductViewModel: tabProductViewModel,
+                            productSummaryService: productSummaryService
+                        )
 
-                        if (listProductViewModel.products.last?.id != product.id) {
+                        if (tabProductViewModel.products.last?.id != product.id) {
                             Divider().padding(.vertical, 8)
                         }
                     }
@@ -51,6 +56,7 @@ struct TabProductView: View {
 
 #Preview {
     NavigationStack {
-        TabProductView()
+        TabProductView(productSummaryService: ProductSummaryService())
+            .environment(TabProductViewModel(productService: ProductService()))
     }
 }

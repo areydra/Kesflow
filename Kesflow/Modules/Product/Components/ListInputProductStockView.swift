@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct ListInputProductStockView: View {
-    @State private var listProductViewModel: TabProductViewModel = .instance
     @Binding var listProductStock: [ProductStockEntity]
+    
+    let productService: ProductService = .init()
     
     var body: some View {
         VStack {
@@ -23,7 +24,7 @@ struct ListInputProductStockView: View {
             
             Button {
                 listProductStock.append(
-                    listProductViewModel.productStockEntity(
+                    productService.productStockEntity(
                         costPrice: 0,
                         stock: 0,
                         unit: ""

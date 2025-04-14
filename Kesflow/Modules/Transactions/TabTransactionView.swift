@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct TabTransactionView: View {
-    @State private var transactionViewModel: TabTransactionViewModel = .instance
+    @Environment(TabTransactionViewModel.self) private var tabTransactionViewModel
+    let productSummaryService: ProductSummaryServiceProviding
  
     var body: some View {
         ScrollView {
@@ -29,11 +30,15 @@ struct TabTransactionView: View {
             .padding(.bottom)
             
             LazyVStack() {
-                if transactionViewModel.transactions.isEmpty {
+                if tabTransactionViewModel.transactions.isEmpty {
                     Text("There are no transactions!")
                 } else {
-                    ForEach(transactionViewModel.transactions) { transaction in
-                        ItemTransactionView(transaction: transaction)
+                    ForEach(tabTransactionViewModel.transactions) { transaction in
+                        ItemTransactionView(
+                            transaction: transaction,
+                            tabTransactionViewModel: tabTransactionViewModel,
+                            productSummaryService: productSummaryService
+                        )
                     }
 
                 }
@@ -43,5 +48,6 @@ struct TabTransactionView: View {
 }
 
 #Preview {
-    TabTransactionView()
+    TabTransactionView(productSummaryService: ProductSummaryService())
+        .environment(TabTransactionViewModel())
 }

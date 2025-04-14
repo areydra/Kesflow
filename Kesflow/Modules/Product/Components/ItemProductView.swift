@@ -9,15 +9,15 @@ import SwiftUI
 
 struct ItemProductView: View {
     @Environment(NavigationViewModel.self) private var navigationViewModel
-    @EnvironmentObject var productSummaryViewModel: ProductSummaryViewModel
-
-    @State private var listProductViewModel: TabProductViewModel = .instance
+    
+    @ObservedObject var product: ProductEntity
+    @State var tabProductViewModel: TabProductViewModel
+    let productSummaryService: ProductSummaryServiceProviding
+    
     @State private var selectedProduct: ProductEntity? = nil
     @State private var showAlertDelete: Bool = false
     @State private var draggingItemOffestX: CGFloat = 0
     @State private var draggedItemOffsetX: CGFloat = 0
-
-    @ObservedObject var product: ProductEntity
 
     var body: some View {
         ZStack {
@@ -66,7 +66,7 @@ struct ItemProductView: View {
             .offset(x: draggingItemOffestX)
             .offset(x: draggedItemOffsetX)
             .onTapGesture(perform: {
-                listProductViewModel.setSelectedProduct(product: product)
+                tabProductViewModel.setSelectedProduct(product: product)
                 navigationViewModel.push(.EditProduct)
             })
             .simultaneousGesture(
@@ -99,8 +99,8 @@ struct ItemProductView: View {
                 primaryButton: .destructive(Text("Delete"), action: {
                     guard let selectedProduct = selectedProduct else { return }
                     Task {
-                        try await listProductViewModel.deleteProduct(product: selectedProduct)
-                        productSummaryViewModel.refreshProductSummaryStock()
+                        await tabProductViewModel.delete(product: selectedProduct)
+                        productSummaryService.refreshProductSummaryStock()
                     }
                 }),
                 secondaryButton: .cancel()
@@ -142,7 +142,11 @@ struct ItemProductView_Views: PreviewProvider {
         productEntity.recommendedPrice = 21000
         productEntity.listProductStock = NSSet(array: listProductStock)
 
-        return ItemProductView(product: productEntity)
+        return ItemProductView(
+                product: productEntity,
+                tabProductViewModel: TabProductViewModel(productService: ProductService()),
+                productSummaryService: ProductSummaryService()
+            )
             .environment(NavigationViewModel())
     }
 }

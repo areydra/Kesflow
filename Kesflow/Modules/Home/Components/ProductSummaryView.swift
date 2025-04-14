@@ -106,5 +106,5 @@ struct ProductSummaryView: View {
 
 #Preview {
     ProductSummaryView()
-        .environmentObject(ProductSummaryViewModel())
+        .environmentObject(ProductSummaryViewModel(productSummaryService: ProductSummaryService()))
 }

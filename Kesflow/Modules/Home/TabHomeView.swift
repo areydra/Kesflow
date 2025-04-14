@@ -31,5 +31,5 @@ struct TabHomeView: View {
 
 #Preview {
     TabHomeView()
-        .environmentObject(ProductSummaryViewModel())
+        .environmentObject(ProductSummaryViewModel(productSummaryService: ProductSummaryService()))
 }

@@ -9,9 +9,10 @@ import SwiftUI
 
 struct AddProductView: View {
     @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var productSummaryViewModel: ProductSummaryViewModel
-    
-    @State private var listProductViewModel: TabProductViewModel = .instance
+    @Environment(TabProductViewModel.self) private var tabProductViewModel
+
+    let productService: ProductService = .init()
+    let productSummaryService: ProductSummaryServiceProviding
 
     @State private var productName: String = ""
     @State private var recommendedPrice: String = ""
@@ -19,14 +20,14 @@ struct AddProductView: View {
 
     func onSave() {
         Task {
-            try await listProductViewModel.addProduct(
+            await tabProductViewModel.add(
                 name: productName,
                 recommendedPrice: Int32(unformatDecimal(text: recommendedPrice)) ?? 0,
                 listProductStock: listProductStock
             )
-            productSummaryViewModel.refreshProductSummaryStock()
+            productSummaryService.refreshProductSummaryStock()
         }
-        productSummaryViewModel.refreshProductSummaryStock()
+        productSummaryService.refreshProductSummaryStock()
         dismiss()
     }
 
@@ -82,13 +83,14 @@ struct AddProductView: View {
         }
         .navigationTitle("Add Product")
         .onAppear() {
-            listProductStock.append(listProductViewModel.productStockEntity(costPrice: 0, stock: 0, unit: ""))
+            listProductStock.append(productService.productStockEntity(costPrice: 0, stock: 0, unit: ""))
         }
     }
 }
 
 #Preview {
     NavigationStack {
-        AddProductView()
+        AddProductView(productSummaryService: ProductSummaryService())
+            .environment(TabProductViewModel(productService: ProductService()))
     }
 }

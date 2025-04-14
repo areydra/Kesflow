@@ -13,14 +13,18 @@ class ProductSummarySalesService {
     var context: NSManagedObjectContext = KesflowManager.instance.context
     var cancellables = Set<AnyCancellable>()
     
-    func getLatest() -> ProductSummarySalesEntity? {
+    func getLatest() -> ProductSummarySalesModel? {
         let request: NSFetchRequest = NSFetchRequest<ProductSummarySalesEntity>(entityName: "ProductSummarySalesEntity")
 
         request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
         request.fetchLimit = 1
         
         do {
-            return try context.fetch(request).first
+            if let productSummaryEntity = try context.fetch(request).first {
+                return ProductSummarySalesModel(from: productSummaryEntity)
+            }
+
+            return nil
         } catch let error as NSError {
             print("Error while fetching product summary \(error)")
             return nil
@@ -28,7 +32,6 @@ class ProductSummarySalesService {
     }
     
     func getSpecificByDate(date: Date) -> ProductSummarySalesEntity? {
-        var productSummarySales: ProductSummarySalesEntity? = nil
         let request: NSFetchRequest<ProductSummarySalesEntity> = NSFetchRequest(entityName: "ProductSummarySalesEntity")
         let bounds = dayBounds(for: date)
 
@@ -36,13 +39,11 @@ class ProductSummarySalesService {
         request.fetchLimit = 1
 
         do {
-            productSummarySales = try context.fetch(request).first
+            return try context.fetch(request).first
         } catch {
             print("Error while fetching specific product summary: \(error)")
             return nil
         }
-        
-        return productSummarySales
     }
     
     private func dayBounds(for date: Date) -> (start: Date, end: Date) {
@@ -51,14 +52,14 @@ class ProductSummarySalesService {
         return (start, end)
     }
     
-    func add(transaction: TransactionModel) -> ProductSummarySalesEntity? {
+    func add(transaction: TransactionModel) -> ProductSummarySalesModel? {
         handleProductSummarySales(isActionDelete: false, productSummaryModel: ProductSummarySalesModel(from: transaction))
         saveToDatabase()
         return getLatest()
     }
 
     
-    func edit(oldTransaction: TransactionModel, newTransaction: TransactionModel) -> ProductSummarySalesEntity? {
+    func edit(oldTransaction: TransactionModel, newTransaction: TransactionModel) -> ProductSummarySalesModel? {
         if newTransaction.date != oldTransaction.date {
             // delete old summary based on date
             handleProductSummarySales(isActionDelete: true, productSummaryModel: ProductSummarySalesModel(from: oldTransaction))
@@ -82,7 +83,7 @@ class ProductSummarySalesService {
         return getLatest()
     }
     
-    func delete(transaction: TransactionModel) -> ProductSummarySalesEntity? {
+    func delete(transaction: TransactionModel) -> ProductSummarySalesModel? {
         handleProductSummarySales(isActionDelete: true, productSummaryModel: ProductSummarySalesModel(from: transaction))
         saveToDatabase()
         return getLatest()

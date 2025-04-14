@@ -8,85 +8,47 @@
 import Foundation
 import CoreData
 
+// Move crud operation into service and add getProducts, and getSpecificProduct into protocol
+
 @MainActor
 @Observable class TabProductViewModel {
-    let context: NSManagedObjectContext = KesflowManager.instance.context
-    static let instance = TabProductViewModel()
+    let productService: ProductService
     
     var products: [ProductEntity] = []
     var selectedProduct: ProductEntity?
     
-    private init() {
-        self.getProducts()
-    }
-    
-    func getProducts() {
-        let request: NSFetchRequest = NSFetchRequest<ProductEntity>(entityName: "ProductEntity")
+    init(productService: ProductService) {
+        self.productService = productService
 
-        do {
-            products = try self.context.fetch(request)
-        } catch let error as NSError {
-            print("Error while get products: \(error)")
-        }
-    }
-    
-    func getSpecificProduct(name: String?) -> ProductEntity? {
-        guard let name = name else { return nil }
-        
-        let request: NSFetchRequest<ProductEntity> = NSFetchRequest(entityName: "ProductEntity")
-        request.predicate = NSPredicate(format: "name CONTAINS[c] %@", name)
-
-        do {
-            return try self.context.fetch(request).first
-        } catch let error as NSError {
-            print("Error while getting specific product: \(error)")
-            return nil
+        if let products = productService.get() {
+            self.products = products
         }
     }
 
-    func addProduct(name: String, recommendedPrice: Int32, listProductStock: [ProductStockEntity]) async throws {
-        let newProduct = ProductEntity(context: context)
-        newProduct.name = name
-        newProduct.recommendedPrice = recommendedPrice
-        newProduct.listProductStock = NSSet(array: listProductStock)
+    func add(name: String, recommendedPrice: Int32, listProductStock: [ProductStockEntity]) async {
+        guard let product = await productService.add(name: name, recommendedPrice: recommendedPrice, listProductStock: listProductStock) else {
+            return
+        }
+
+        products.append(product)
+    }
+
+    func edit(newName: String, newRecommendedPrice: Int32, listProductStock: [ProductStockEntity]) async {
+        guard let selectedProduct = self.selectedProduct,
+              let editedProduct = await productService.edit(selectedProductEntity: selectedProduct, newName: newName, newRecommendedPrice: newRecommendedPrice, listProductStock: listProductStock),
+              let index = products.firstIndex(where: { $0 === editedProduct })
+               else { return }
         
+        products[index] = editedProduct
+    }
+    
+    func delete(product: ProductEntity) async {
         do {
-            try await saveDataIntoDatabase()
+            try await productService.delete(product: product)
+            guard let index = products.firstIndex(where: { $0 === product }) else { return }
+            products.remove(at: index)
         } catch let error {
-            throw error
-        }
-    }
-
-    func editProduct(newName: String, newRecommendedPrice: Int32, listProductStock: [ProductStockEntity]) async throws {
-        guard let selectedProduct = self.selectedProduct else { return }
-        
-        selectedProduct.name = newName
-        selectedProduct.recommendedPrice = newRecommendedPrice
-        selectedProduct.listProductStock = NSSet(array: listProductStock)
-        
-        do {
-            try await saveDataIntoDatabase()
-        } catch let error {
-            throw error
-        }
-    }
-    
-    func productStockEntity(costPrice: Int32, stock: Int16, unit: String) -> ProductStockEntity {
-        let productStock = ProductStockEntity(context: context)
-        productStock.costPrice = costPrice
-        productStock.stock = stock
-        productStock.unit = unit
-        
-        return productStock
-    }
-    
-    func deleteProduct(product: ProductEntity) async throws {
-        self.context.delete(product)
-        
-        do {
-            try await saveDataIntoDatabase()
-        } catch let error {
-            throw error
+            print("error: \(error)")
         }
     }
     
@@ -96,16 +58,5 @@ import CoreData
     
     func removeSelectedProduct() {
         self.selectedProduct = nil
-    }
-    
-    func saveDataIntoDatabase() async throws {
-        do {
-            self.products.removeAll()
-            try self.context.save()
-            self.getProducts()
-        } catch let error as NSError {
-            print("Error while saving data into database: \(error)")
-            throw error
-        }
     }
 }

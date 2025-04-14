@@ -10,8 +10,6 @@ import CoreData
 import Combine
 
 class ProductSummaryStockService: ObservableObject {
-    @Published var productSummaryStock: ProductSummaryStockModel? = nil
-    
     var context: NSManagedObjectContext = KesflowManager.instance.context
     var cancellables = Set<AnyCancellable>()
     

@@ -6,39 +6,26 @@
 //
 
 import Foundation
-import CoreData
-import Combine
 
-class ProductSummaryViewModel: ObservableObject {
-    @Published var selectedDate: Date? = nil
-    @Published var isShowCalendarModal: Bool = false
-
+class ProductSummaryService: ObservableObject, ProductSummaryServiceProviding {
     @Published var productSummaryStock: ProductSummaryStockModel? = nil
-    @Published var productSummarySales: ProductSummarySalesEntity? = nil
+    @Published var productSummarySales: ProductSummarySalesModel? = nil
+    
+    var productSummaryStockPublisher: Published<ProductSummaryStockModel?>.Publisher { $productSummaryStock }
+    var productSummarySalesPublisher: Published<ProductSummarySalesModel?>.Publisher { $productSummarySales }
     
     let productSummaryStockService: ProductSummaryStockService = .init()
     let productSummarySalesService: ProductSummarySalesService = .init()
-    var cancellables = Set<AnyCancellable>()
     
     init() {
         self.productSummarySales = self.productSummarySalesService.getLatest()
         self.productSummaryStock = self.productSummaryStockService.get()
-        subscriptionSelectedDate()
-    }
-    
-    func showCalendarModal() {
-        isShowCalendarModal.toggle()
     }
 
-    func subscriptionSelectedDate() {
-        $selectedDate
-            .compactMap { $0 }
-            .sink { date in
-                if let productSummarySalesByDate = self.productSummarySalesService.getSpecificByDate(date: date) {
-                    self.productSummarySales = productSummarySalesByDate
-                }
-            }
-            .store(in: &cancellables)
+    func getProductSummarySalesByDate(date: Date) {
+        if let productSummarySalesEntityByDate = self.productSummarySalesService.getSpecificByDate(date: date) {
+            self.productSummarySales = ProductSummarySalesModel(from: productSummarySalesEntityByDate)
+        }
     }
     
     func refreshProductSummaryStock() {

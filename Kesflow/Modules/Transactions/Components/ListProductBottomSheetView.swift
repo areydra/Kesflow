@@ -8,20 +8,34 @@
 import SwiftUI
 
 struct ListProductBottomSheetView: View {
-    @State private var listProductViewModel: TabProductViewModel = .instance
-
     @Binding var isShow: Bool
     @Binding var selectedProduct: ProductEntity?
     @Binding var selectedProductStock: ProductStockEntity?
+    
+    @State var products: [ProductEntity] = []
+    
+    let productService: ProductServiceProviding
+    
+    init(
+        isShow: Binding<Bool>,
+        selectedProduct: Binding<ProductEntity?> = .constant(nil),
+        selectedProductStock: Binding<ProductStockEntity?> = .constant(nil),
+        productService: ProductServiceProviding
+    ) {
+        self._isShow = isShow
+        self._selectedProduct = selectedProduct
+        self._selectedProductStock = selectedProductStock
+        self.productService = productService
+    }
 
     var body: some View {
         BottomSheet(isShowModal: $isShow, content: Group {
             VStack {
-                if listProductViewModel.products.isEmpty {
+                if products.isEmpty {
                     Text("No product found")
                 } else {
                     List {
-                        ForEach(listProductViewModel.products, id: \.self) { product in
+                        ForEach(products, id: \.self) { product in
                             Text(product.name ?? "")
                                 .onTapGesture {
                                     if (selectedProduct != product) {
@@ -38,11 +52,21 @@ struct ListProductBottomSheetView: View {
                 }
             }
         })
+        .onAppear {
+            if let products = productService.get() {
+                self.products = products
+            }
+        }
     }
 }
 
 struct ListProductBottomSheetView_Preview: PreviewProvider {
     static var previews: some View {
-        ListProductBottomSheetView(isShow: .constant(true), selectedProduct: .constant(nil), selectedProductStock: .constant(nil))
+        ListProductBottomSheetView(
+            isShow: .constant(true),
+            selectedProduct: .constant(nil),
+            selectedProductStock: .constant(nil),
+            productService: ProductService()
+        )
     }
 }

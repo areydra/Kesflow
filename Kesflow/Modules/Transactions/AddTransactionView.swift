@@ -8,11 +8,11 @@
 import SwiftUI
 
 struct AddTransactionView: View {
-    @State private var listProductViewModel: TabProductViewModel = .instance
-    @State private var transactionViewModel: TabTransactionViewModel = .instance
-
+    @Environment(TabTransactionViewModel.self) private var tabTransactionViewModel
     @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var productSummaryViewModel: ProductSummaryViewModel
+
+    let productService: ProductServiceProviding
+    let productSummaryService: ProductSummaryServiceProviding
     
     @State var salePrice: String = ""
     @State var quantity: String = ""
@@ -55,8 +55,8 @@ struct AddTransactionView: View {
         )
 
         Task {
-            await transactionViewModel.saveTransaction(transaction)
-            productSummaryViewModel.add(transaction: transaction)
+            await tabTransactionViewModel.saveTransaction(transaction)
+            productSummaryService.add(transaction: transaction)
         }
 
         dismiss()
@@ -116,7 +116,12 @@ struct AddTransactionView: View {
             }
 
             DateModalView(isShow: $isShowModalDate, selectedDate: $selectedDate)
-            ListProductBottomSheetView(isShow: $isShowProductBS, selectedProduct: $selectedProduct, selectedProductStock: $selectedProductStock)
+            ListProductBottomSheetView(
+                isShow: $isShowProductBS,
+                selectedProduct: $selectedProduct,
+                selectedProductStock: $selectedProductStock,
+                productService: productService
+            )
             ListProductStockBottomSheetView(isShow: $isShowProductStockBS, selectedProduct: $selectedProduct, selectedProductStock: $selectedProductStock)
         }
         .toolbar {
@@ -131,7 +136,10 @@ struct AddTransactionView: View {
 
 #Preview {
     NavigationStack {
-        AddTransactionView()
+        AddTransactionView(
+            productService: ProductService(),
+            productSummaryService: ProductSummaryService()
+        )
+        .environment(TabTransactionViewModel())
     }
-    .environmentObject(ProductSummaryViewModel())
 }

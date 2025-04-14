@@ -9,10 +9,10 @@ import SwiftUI
 
 struct ItemTransactionView: View {
     @Environment(NavigationViewModel.self) var navigationViewModel
-    @EnvironmentObject var productSummaryViewModel: ProductSummaryViewModel
-    @State private var transactionViewModel: TabTransactionViewModel = .instance
 
     @ObservedObject var transaction: TransactionEntity
+    let tabTransactionViewModel: TabTransactionViewModel
+    let productSummaryService: ProductSummaryServiceProviding
     
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -118,7 +118,7 @@ struct ItemTransactionView: View {
             .offset(x: draggingItemOffestX)
             .offset(x: draggedItemOffsetX)
             .onTapGesture(perform: {
-                transactionViewModel.setSelectedTransaction(transaction)
+                tabTransactionViewModel.setSelectedTransaction(transaction)
                 navigationViewModel.push(.EditTransaction)
             })
             .simultaneousGesture(
@@ -150,8 +150,8 @@ struct ItemTransactionView: View {
                     primaryButton: .destructive(Text("Delete"), action: {
                         Task {
                             let transactionModel = TransactionModel(from: transaction)
-                            await transactionViewModel.deleteTransaction(transaction)
-                            productSummaryViewModel.delete(transaction: transactionModel)
+                            await tabTransactionViewModel.deleteTransaction(transaction)
+                            productSummaryService.delete(transaction: transactionModel)
                         }
                     }),
                     secondaryButton: .cancel()
@@ -180,8 +180,11 @@ struct ItemTransactionView_Views: PreviewProvider {
         transactionEntity.profit = 45000
         transactionEntity.productStock = productStock
 
-        return ItemTransactionView(transaction: transactionEntity)
+        return ItemTransactionView(
+                transaction: transactionEntity,
+                tabTransactionViewModel: TabTransactionViewModel(),
+                productSummaryService: ProductSummaryService()
+            )
             .environment(NavigationViewModel())
-            .environmentObject(ProductSummaryViewModel())
     }
 }

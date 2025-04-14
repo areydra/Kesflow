@@ -26,4 +26,11 @@ struct ProductSummarySalesModel {
         self.totalProfit = model.profit
         self.date = model.date
     }
+    
+    init(from entity: ProductSummarySalesEntity) {
+        self.totalProductsSold = entity.totalProductsSold
+        self.totalSalesRevenue = entity.totalSalesRevenue
+        self.totalProfit = entity.totalProfit
+        self.date = entity.date ?? Date()
+    }
 }

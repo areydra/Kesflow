@@ -8,11 +8,11 @@
 import SwiftUI
 
 struct EditTransactionView: View {
-    @State private var listProductViewModel: TabProductViewModel = .instance
-    @State private var transactionViewModel: TabTransactionViewModel = .instance
-
+    @Environment(TabTransactionViewModel.self) private var tabTransactionViewModel
     @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var productSummaryViewModel: ProductSummaryViewModel
+    
+    let productService: ProductServiceProviding
+    let productSummaryService: ProductSummaryServiceProviding
     
     @State var salePrice: String = ""
     @State var quantity: String = ""
@@ -38,7 +38,7 @@ struct EditTransactionView: View {
         guard let product = selectedProduct,
               let productStock = selectedProductStock,
               let selectedProduct = selectedProduct,
-              let selectedTransaction = transactionViewModel.selectedTransaction else { return }
+              let selectedTransaction = tabTransactionViewModel.selectedTransaction else { return }
         
         let unFormatSalePrice: Int32 = Int32(unformatDecimal(text: salePrice)) ?? 0
         let unFormatQuantity: Int32 = Int32(unformatDecimal(text: quantity)) ?? 0
@@ -58,17 +58,17 @@ struct EditTransactionView: View {
         
         Task {
             let oldTransactionModel = TransactionModel(from: selectedTransaction)
-            await transactionViewModel.editTransaction(transaction: selectedTransaction, newTransaction: newTransaction)
-            productSummaryViewModel.edit(oldTransaction: oldTransactionModel, newTransaction: newTransaction)
+            await tabTransactionViewModel.editTransaction(transaction: selectedTransaction, newTransaction: newTransaction)
+            productSummaryService.edit(oldTransaction: oldTransactionModel, newTransaction: newTransaction)
         }
 
         dismiss()
     }
     
     func getTransaction() {
-        guard let selectedTransaction = transactionViewModel.selectedTransaction else { return }
+        guard let selectedTransaction = tabTransactionViewModel.selectedTransaction else { return }
         
-        selectedProduct = selectedTransaction.product ?? listProductViewModel.getSpecificProduct(name: selectedTransaction.name)
+        selectedProduct = selectedTransaction.product ?? productService.getSpecificByName(name: selectedTransaction.name)
         selectedProductStock = selectedTransaction.productStock
         salePrice = String(selectedTransaction.salePrice)
         quantity = String(selectedTransaction.quantity)
@@ -130,7 +130,12 @@ struct EditTransactionView: View {
             }
 
             DateModalView(isShow: $isShowModalDate, selectedDate: $selectedDate)
-            ListProductBottomSheetView(isShow: $isShowProductBS, selectedProduct: $selectedProduct, selectedProductStock: $selectedProductStock)
+            ListProductBottomSheetView(
+                isShow: $isShowProductBS,
+                selectedProduct: $selectedProduct,
+                selectedProductStock: $selectedProductStock,
+                productService: productService
+            )
             ListProductStockBottomSheetView(isShow: $isShowProductStockBS, selectedProduct: $selectedProduct, selectedProductStock: $selectedProductStock)
         }
         .toolbar {
@@ -146,7 +151,10 @@ struct EditTransactionView: View {
 
 #Preview {
     NavigationStack {
-        EditTransactionView()
+        EditTransactionView(
+            productService: ProductService(),
+            productSummaryService: ProductSummaryService()
+        )
+        .environment(TabTransactionViewModel())
     }
-    .environmentObject(ProductSummaryViewModel())
 }

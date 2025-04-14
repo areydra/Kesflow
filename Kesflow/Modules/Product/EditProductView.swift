@@ -9,16 +9,16 @@ import SwiftUI
 
 struct EditProductView: View {
     @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var productSummaryViewModel: ProductSummaryViewModel
-    
-    @State private var listProductViewModel: TabProductViewModel = .instance
+    @Environment(TabProductViewModel.self) private var tabProductViewModel
+
+    let productSummaryService: ProductSummaryServiceProviding
     
     @State private var productName: String = ""
     @State private var recommendedPrice: String = ""
     @State private var listProductStock: [ProductStockEntity] = []
 
     func getProductDetail() {
-        guard let selectedProduct = listProductViewModel.selectedProduct else {
+        guard let selectedProduct = tabProductViewModel.selectedProduct else {
             return
         }
         
@@ -32,12 +32,12 @@ struct EditProductView: View {
 
     func onSave() {
         Task {
-            try await listProductViewModel.editProduct(
+            await tabProductViewModel.edit(
                 newName: productName,
                 newRecommendedPrice: Int32(recommendedPrice.isEmpty ? "0" : unformatDecimal(text: recommendedPrice)) ?? 0,
                 listProductStock: listProductStock
             )
-            productSummaryViewModel.refreshProductSummaryStock()
+            productSummaryService.refreshProductSummaryStock()
         }
         dismiss()
     }
@@ -67,7 +67,7 @@ struct EditProductView: View {
                     placeholder: "Enter product name"
                 )
                 .onChange(of: productName) { oldValue, newValue in
-                    guard let selectedProduct = listProductViewModel.selectedProduct else { return }
+                    guard let selectedProduct = tabProductViewModel.selectedProduct else { return }
                     selectedProduct.name = newValue
                 }
                 
@@ -84,7 +84,7 @@ struct EditProductView: View {
                     isShowPrefixCurrency: true
                 )
                 .onChange(of: recommendedPrice) { oldValue, newValue in
-                    guard let selectedProduct = listProductViewModel.selectedProduct else { return }
+                    guard let selectedProduct = tabProductViewModel.selectedProduct else { return }
                     selectedProduct.recommendedPrice = Int32(unformatDecimal(text: recommendedPrice)) ?? 0
                 }
             }
@@ -101,13 +101,14 @@ struct EditProductView: View {
             }
         }
         .onAppear(perform: getProductDetail)
-        .onDisappear(perform: listProductViewModel.removeSelectedProduct)
+        .onDisappear(perform: tabProductViewModel.removeSelectedProduct)
         .navigationTitle("Edit Product")
     }
 }
 
 #Preview {
     NavigationStack {
-        EditProductView()
+        EditProductView(productSummaryService: ProductSummaryService())
+            .environment(TabProductViewModel(productService: ProductService()))
     }
 }

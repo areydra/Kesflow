@@ -8,27 +8,50 @@
 import SwiftUI
 
 struct RootView: View {
-    @State private var navigationViewModel = NavigationViewModel()
-    @StateObject private var productSummaryViewModel: ProductSummaryViewModel = .init()
+    private let productService: ProductService
+
+    @State private var navigationViewModel: NavigationViewModel = .init()
+    @State private var tabProductViewModel: TabProductViewModel
+    @State private var tabTransactionViewModel: TabTransactionViewModel = .init()
+    @StateObject private var productSummaryService: ProductSummaryService = .init()
+    
+    init() {
+        self.productService = .init()
+        _tabProductViewModel = .init(wrappedValue: .init(productService: self.productService))
+    }
+    
 
     var body: some View {
         NavigationStack(path: $navigationViewModel.path) {
-            DashboardView()
+            DashboardView(
+                productSummaryService: productSummaryService,
+                tabProductViewModel: tabProductViewModel,
+                tabTransactionViewModel: tabTransactionViewModel
+            )
             .navigationDestination(for: NavigationKey.self) { key in
                 switch key {
                     case .AddProduct:
-                        AddProductView()
+                        AddProductView(productSummaryService: productSummaryService)
+                        .environment(tabProductViewModel)
                     case .EditProduct:
-                        EditProductView()
+                        EditProductView(productSummaryService: productSummaryService)
+                        .environment(tabProductViewModel)
                     case .AddTransaction:
-                        AddTransactionView()
+                        AddTransactionView(
+                            productService: productService as ProductServiceProviding,
+                            productSummaryService: productSummaryService
+                        )
+                        .environment(tabTransactionViewModel)
                     case .EditTransaction:
-                        EditTransactionView()
+                        EditTransactionView(
+                            productService: productService as ProductServiceProviding,
+                            productSummaryService: productSummaryService
+                        )
+                        .environment(tabTransactionViewModel)
                 }
             }
         }
         .environment(navigationViewModel)
-        .environmentObject(productSummaryViewModel)
     }
 }
 

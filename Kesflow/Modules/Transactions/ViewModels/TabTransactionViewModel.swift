@@ -10,8 +10,6 @@ import CoreData
 
 @MainActor
 @Observable class TabTransactionViewModel {
-    static let instance = TabTransactionViewModel()
-    
     var transactions: [TransactionEntity] = []
     var context: NSManagedObjectContext = KesflowManager.instance.context
     var selectedTransaction: TransactionEntity? = nil
