@@ -91,7 +91,8 @@ struct EditTransactionView: View {
                             withAnimation {
                                 isShowProductBS.toggle()
                             }
-                        }
+                        },
+                        disabled: true
                     )
                     .padding(.top, 20)
                     

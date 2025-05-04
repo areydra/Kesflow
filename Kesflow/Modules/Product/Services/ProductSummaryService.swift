@@ -46,10 +46,18 @@ class ProductSummaryService: ObservableObject, ProductSummaryServiceProviding {
     }
     
     func edit(oldTransaction: TransactionModel, newTransaction: TransactionModel) {
-        let isTransactionChanged: Bool = (oldTransaction.quantity != newTransaction.quantity) || (oldTransaction.productStock != newTransaction.productStock) || (oldTransaction.date != newTransaction.date)
-        
         guard let productSummaryStock = self.productSummaryStock,
-              isTransactionChanged else { return }
+            (
+                oldTransaction.productStock,
+                oldTransaction.salePrice,
+                oldTransaction.quantity,
+                oldTransaction.date
+            ) != (
+                newTransaction.productStock,
+                newTransaction.salePrice,
+                newTransaction.quantity,
+                newTransaction.date
+            ) else { return }
 
         self.productSummarySales = productSummarySalesService.edit(
             oldTransaction: oldTransaction,

@@ -12,12 +12,14 @@ struct TextFieldSelectView: View {
     private var placeholder: String
     private var imageSystemName: String
     private var onPress: (() -> Void)?
+    private var disabled: Bool
 
-    init(label: String, placeholder: String, imageSystemName: String = "", onPress: (() -> Void)? = nil) {
+    init(label: String, placeholder: String, imageSystemName: String = "", onPress: (() -> Void)? = nil, disabled: Bool = false) {
         self.label = label
         self.placeholder = placeholder
         self.imageSystemName = imageSystemName
         self.onPress = onPress
+        self.disabled = disabled
     }
     
     var body: some View {
@@ -41,6 +43,7 @@ struct TextFieldSelectView: View {
             }
             .background(.gray.opacity(0.2))
             .clipShape(RoundedRectangle(cornerRadius: 14))
+            .disabled(disabled)
         }
     }
 }
